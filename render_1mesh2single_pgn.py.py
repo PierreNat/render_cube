@@ -21,7 +21,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, 'dice3.obj'))
     parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, 'rubik2_colored.mtl'))
-    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_proj2.png'))
+    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_proj3.png'))
     parser.add_argument('-g', '--gpu', type=int, default=0)
     args = parser.parse_args()
 
@@ -41,9 +41,9 @@ def main():
     textures = torch.ones(1, faces.shape[1], texture_size, texture_size, texture_size, 3, dtype=torch.float32).cuda()
 
     # to gpu
-    
-    #extrinsic parameter, link world/object coordinate to camera coordinate
-    
+#---------------------------------------------------------------------------------
+#extrinsic parameter, link world/object coordinate to camera coordinate
+#---------------------------------------------------------------------------------    
     alpha = 0
     beta = 0
     gamma = 0
@@ -64,8 +64,8 @@ def main():
     
     batch = vertices.shape[0]
     Rx = np.array([[1,0,0],
-                  [0,m.cos(alpha),m.sin(alpha)],
-                  [0,-m.sin(alpha),m.cos(alpha)]])
+                  [0,m.cos(alpha),-m.sin(alpha)],
+                  [0,m.sin(alpha),m.cos(alpha)]])
     
     Ry  = np.array([[m.cos(beta),0,-m.sin(beta)],
                   [0,1,0],
@@ -75,20 +75,23 @@ def main():
                   [m.sin(gamma),m.cos(gamma),0],
                   [0,0,1]]) 
   
-#   creaete the rotation matrix
+#   creaete the rotation camera matrix 
+    
     R = np.matmul(Rx,Ry)
     R = np.matmul(R,Rz)
 
     
-    t = np.array([0,0,5]) #camera position [x,yz] 0 0 5
+    t = np.array([0,0,5]) #camera position [x,y, z] 0 0 5
 
     R = np.repeat(R[np.newaxis, :, :], batch, axis=0) # shape of [batch=1, 3, 3]
     t = np.repeat(t[np.newaxis, :], 1, axis=0)# shape of [1, 3]
 #    t = np.repeat(t[np.newaxis, :, :], batch, axis=0) # shape of [batch=1, 1, 3]
 
     
+#---------------------------------------------------------------------------------    
+#intrinsic parameter, link camera coordinate to image plane
+#---------------------------------------------------------------------------------
     
-    #intrinsic parameter, link camera coordinate to image plane
     K  = np.array([[f/pix_sizeX,0,Cam_centerX],
                   [0,f/pix_sizeY,Cam_centerY],
                   [0,0,1]])# shape of [nb_vertice, 3, 3]
@@ -110,7 +113,7 @@ def main():
         renderer.eye = nr.get_points_from_angles(camera_distance, elevation, azimuth)
         images = renderer(vertices, faces, textures)  # [batch_size, RGB, image_size, image_size]
         image = images[0].detach().cpu().numpy()[0].transpose((1, 2, 0))  # [image_size, image_size, RGB]
-        image[Cam_centerX,Cam_centerY] = [1,1,1] #draw middle point camera center
+        image[np.int(resolutionX/2),np.int(resolutionY/2)] = [1,1,1] #draw middle point camera center
         writer.append_data((255*image).astype(np.uint8))
     
 
