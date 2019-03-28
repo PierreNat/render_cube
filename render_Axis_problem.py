@@ -1,5 +1,5 @@
 """
-Render a set of synthetic images only with dice translation
+Example 1. Drawing a teapot from multiple viewpoints.
 """
 import os
 import argparse
@@ -19,9 +19,9 @@ data_dir = os.path.join(current_dir, 'data')
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, 'dice3.obj'))
-    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, 'rubik2_colored.mtl'))
-    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_proj_2meshes.png'))
+    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, 'Axis.obj'))
+    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, 'Axis.mtl'))
+    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_proj_2meshes4.png'))
     parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_proj_2meshes_silhouette.png'))
     parser.add_argument('-g', '--gpu', type=int, default=0)
     args = parser.parse_args()
@@ -46,10 +46,14 @@ def main():
 # extrinsic parameter, link world/object coordinate to camera coordinate
 # ---------------------------------------------------------------------------------
     alpha = 0
-    beta = 0
+    beta = pi/6
     gamma = 0
+
+    tx = 0
+    ty = 0
+    tz = -5
  
-    resolutionX = 512 # in pixel
+    resolutionX = 512  # in pixel
     resolutionY = 512
     scale = 1
     f = 35 # focal on lens
@@ -64,6 +68,7 @@ def main():
     
     
     batch = vertices.shape[0]
+
     Rx = np.array([[1,0,0],
                   [0,m.cos(alpha),-m.sin(alpha)],
                   [0,m.sin(alpha),m.cos(alpha)]])
@@ -72,8 +77,8 @@ def main():
                   [0,1,0],
                   [m.sin(beta),0,m.cos(beta)]])
     
-    Rz = np.array([[m.cos(gamma),-m.sin(gamma),0],
-                  [m.sin(gamma),m.cos(gamma),0],
+    Rz = np.array([[m.cos(gamma),m.sin(gamma),0],
+                  [-m.sin(gamma),m.cos(gamma),0],
                   [0,0,1]]) 
   
 #   creaete the rotation object matrix
@@ -81,7 +86,8 @@ def main():
     R = np.matmul(Rx,Ry)
     R = np.matmul(R,Rz)
 
-    t_1 = np.array([0,0,5]) # object position [x,y, z] 0 0 5
+    
+    t_1 = np.array([tx,ty,tz]) #object position [x,y, z] 0 0 5
     t_2 = np.array([-1, 2, 5])
 
     R = np.repeat(R[np.newaxis, :, :], batch, axis=0) # shape of [batch=1, 3, 3]
@@ -89,6 +95,38 @@ def main():
     t_2 = np.repeat(t_2[np.newaxis, :], 1, axis=0)
 
 # ---------------------------------------------------------------------------------
+# Transform axis
+# ---------------------------------------------------------------------------------
+    batch = vertices.shape[0]
+    alpha = alpha - pi/2
+    save = beta
+    beta = gamma
+    gamma = -save
+
+    Rx = np.array([[1, 0, 0],
+                   [0, m.cos(alpha), -m.sin(alpha)],
+                   [0, m.sin(alpha), m.cos(alpha)]])
+
+    Ry = np.array([[m.cos(beta), 0, m.sin(beta)],
+                   [0, 1, 0],
+                   [-m.sin(beta), 0, m.cos(beta)]])
+
+    Rz = np.array([[m.cos(gamma), -m.sin(gamma), 0],
+                   [m.sin(gamma), m.cos(gamma), 0],
+                   [0, 0, 1]])
+
+    #   creaete the rotation object matrix
+
+    R = np.matmul(Rx, Ry)
+    R = np.matmul(R, Rz)
+
+    t_1 = np.array([tx, -ty, -tz])  # object position [x,y, z] 0 0 5
+    t_2 = np.array([-1, 2, 5])
+
+    R = np.repeat(R[np.newaxis, :, :], batch, axis=0)  # shape of [batch=1, 3, 3]
+    t_1 = np.repeat(t_1[np.newaxis, :], 1, axis=0)  # shape of [1, 3]
+    t_2 = np.repeat(t_2[np.newaxis, :], 1, axis=0)
+    # ---------------------------------------------------------------------------------
 # intrinsic parameter, link camera coordinate to image plane
 # ---------------------------------------------------------------------------------
     
@@ -100,12 +138,14 @@ def main():
     
     # create renderer
 #    renderer = nr.Renderer(image_size=512, camera_mode='projection')
-    renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None, K=K, R=R, t=t_1, near=0.1, far=1000, orig_size=1024)
+    renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None, K=K, R=R, t=t_1, near=0.1, far=1000, orig_size=512)
     renderer2 = nr.Renderer(image_size=512, camera_mode='projection', dist_coeffs=None, K=K, R=R, t=t_2, near=0.1,far=1000, orig_size=512)
+
+
 
 # render object
 
-    nb_obj2render = 2
+    nb_obj2render = 1
 
     loop = tqdm.tqdm(range(0, 1, 1))
     writer = imageio.get_writer(args.filename_output, mode='i')

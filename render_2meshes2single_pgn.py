@@ -19,9 +19,9 @@ data_dir = os.path.join(current_dir, 'data')
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, 'dice3.obj'))
-    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, 'rubik2_colored.mtl'))
-    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_proj_2meshes.png'))
+    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, 'Axis.obj'))
+    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, 'Axis.mtl'))
+    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_proj_2meshes2.png'))
     parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_proj_2meshes_silhouette.png'))
     parser.add_argument('-g', '--gpu', type=int, default=0)
     args = parser.parse_args()
@@ -49,7 +49,7 @@ def main():
     beta = 0
     gamma = 0
  
-    resolutionX = 512 # in pixel
+    resolutionX = 512  # in pixel
     resolutionY = 512
     scale = 1
     f = 35 # focal on lens
@@ -72,8 +72,8 @@ def main():
                   [0,1,0],
                   [m.sin(beta),0,m.cos(beta)]])
     
-    Rz = np.array([[m.cos(gamma),-m.sin(gamma),0],
-                  [m.sin(gamma),m.cos(gamma),0],
+    Rz = np.array([[m.cos(gamma),m.sin(gamma),0],
+                  [-m.sin(gamma),m.cos(gamma),0],
                   [0,0,1]]) 
   
 #   creaete the rotation object matrix
@@ -108,7 +108,7 @@ def main():
 
 # render object
 
-    nb_obj2render = 2
+    nb_obj2render = 1
 
     loop = tqdm.tqdm(range(0, 1, 1))
     writer = imageio.get_writer(args.filename_output, mode='i')
