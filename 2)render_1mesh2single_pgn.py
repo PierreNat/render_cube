@@ -20,7 +20,7 @@ data_dir = os.path.join(current_dir, 'data')
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, 'dice3.obj'))
-    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, 'rubik2_colored.mtl'))
+    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, 'dice3.mtl'))
     parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_proj3.png'))
     parser.add_argument('-g', '--gpu', type=int, default=0)
     args = parser.parse_args()
@@ -44,7 +44,7 @@ def main():
 #---------------------------------------------------------------------------------
 #extrinsic parameter, link world/object coordinate to camera coordinate
 #---------------------------------------------------------------------------------    
-    alpha = 0
+    alpha = pi/2
     beta = 0
     gamma = 0
  
