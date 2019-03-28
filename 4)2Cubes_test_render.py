@@ -50,8 +50,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name)))
     parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Name)))
-    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, '{}_render.png'.format(Name)))
-    parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, '{}_silhouette.png'.format(Name)))
+    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, '{}_2render.png'.format(Name)))
+    parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, '{}_2silhouette.png'.format(Name)))
     parser.add_argument('-g', '--gpu', type=int, default=0)
     args = parser.parse_args()
 
@@ -60,72 +60,81 @@ def main():
     elevation = 30
     texture_size = 2
 
-    #load 
-    colors, texture_filenames = nr.load_mtl(args.color_input)
-    # load .obj
     vertices, faces = nr.load_obj(args.filename_input)
     vertices = vertices[None, :, :]  # [num_vertices, XYZ] -> [batch_size=1, num_vertices, XYZ]
     faces = faces[None, :, :]  # [num_faces, 3] -> [batch_size=1, num_faces, 3]
 
-    # create texture [batch_size=1, num_faces, texture_size, texture_size, texture_size, RGB]
     textures = torch.ones(1, faces.shape[1], texture_size, texture_size, texture_size, 3, dtype=torch.float32).cuda()
 
     # to gpu
-# ---------------------------------------------------------------------------------
-# extrinsic parameter, link camera coordinate to world/object coordinate
-# ---------------------------------------------------------------------------------
-    alpha = 20 # x-axis rotation
-    beta = 0  # y-axis rotation
-    gamma = 0
 
-    tx = 1  #in meter
-    ty = -1
-    tz = -5
- 
-    resolutionX = 512  # in pixel
-    resolutionY = 512
-    scale = 1
-    f = 35 # focal on lens
-    sensor_width = 32 # in mm given in blender , camera sensor type
-    pixels_in_u_per_mm = (resolutionX*scale)/sensor_width
-    pixels_in_v_per_mm = (resolutionY*scale)/sensor_width
-    pix_sizeX = 1/pixels_in_u_per_mm
-    pix_sizeY = 1/pixels_in_v_per_mm
-    
-    Cam_centerX = resolutionX/2
-    Cam_centerY = resolutionY/2
-
-    batch = vertices.shape[0]
-
-    t, R = AxisBlend2Rend(tx, ty, tz, m.radians(alpha), m.radians(beta), m.radians(gamma))
-    
-    t_1 = t  # object position [x,y, z] 0 0 5
-    t_2 = np.array([-1, 2, 5])
-
-    R = np.repeat(R[np.newaxis, :, :], batch, axis=0) # shape of [batch=1, 3, 3]
-    t_1 = np.repeat(t_1[np.newaxis, :], 1, axis=0)  # shape of [1, 3]
-    t_2 = np.repeat(t_2[np.newaxis, :], 1, axis=0)
 
 # ---------------------------------------------------------------------------------
 # intrinsic parameter, link camera coordinate to image plane
 # ---------------------------------------------------------------------------------
-    
+    resolutionX = 512  # in pixel
+    resolutionY = 512
+    scale = 1
+    f = 35  # focal on lens
+    sensor_width = 32  # in mm given in blender , camera sensor type
+    pixels_in_u_per_mm = (resolutionX * scale) / sensor_width
+    pixels_in_v_per_mm = (resolutionY * scale) / sensor_width
+    pix_sizeX = 1 / pixels_in_u_per_mm
+    pix_sizeY = 1 / pixels_in_v_per_mm
+
+    Cam_centerX = resolutionX / 2
+    Cam_centerY = resolutionY / 2
+
+    batch = vertices.shape[0]
+
     K  = np.array([[f/pix_sizeX,0,Cam_centerX],
                   [0,f/pix_sizeY,Cam_centerY],
                   [0,0,1]])  # shape of [nb_vertice, 3, 3]
     
     K = np.repeat(K[np.newaxis, :, :], batch, axis=0) # shape of [batch=1, 3, 3]
-    
-    # create renderer
-#    renderer = nr.Renderer(image_size=512, camera_mode='projection')
-    renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None, K=K, R=R, t=t_1, near=0.1, far=1000, orig_size=512)
-    renderer2 = nr.Renderer(image_size=512, camera_mode='projection', dist_coeffs=None, K=K, R=R, t=t_2, near=0.1,far=1000, orig_size=512)
+
+# ---------------------------------------------------------------------------------
+# extrinsic parameter, link camera coordinate to world/object coordinate
+# ---------------------------------------------------------------------------------
+
+    alpha_1 = 20  # x-axis rotation
+    beta_1 = 10  # y-axis rotation
+    gamma_1 = 5  # z-axis rotation
+
+    tx_1 = 0.56  # in meter
+    ty_1 = -1.92
+    tz_1 = -3.89
+    scale_1 = 1
+
+    alpha_2 = 0  # x-axis rotation
+    beta_2 = 0  # y-axis rotation
+    gamma_2 = 0  # z-axis rotation
+
+    tx_2 = 0  # in meter
+    ty_2 = 0
+    tz_2 = -3.89
+    scale_2 = 0.5
+
+    t_1, R_1 = AxisBlend2Rend(tx_1, ty_1, tz_1, m.radians(alpha_1), m.radians(beta_1), m.radians(gamma_1))
+    t_2, R_2 = AxisBlend2Rend(tx_2, ty_2, tz_2, m.radians(alpha_2), m.radians(beta_2), m.radians(gamma_2))
+
+    R_1 = np.repeat(R_1[np.newaxis, :, :], batch, axis=0)  # shape of [batch=1, 3, 3]
+    R_2 = np.repeat(R_2[np.newaxis, :, :], batch, axis=0)  # shape of [batch=1, 3, 3]
+    t_1 = np.repeat(t_1[np.newaxis, :], 1, axis=0)  # shape of [1, 3]
+    t_2 = np.repeat(t_2[np.newaxis, :], 1, axis=0)
+
+# ---------------------------------------------------------------------------------
+# create the rendering
+# ---------------------------------------------------------------------------------
+
+    renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None, K=K, R=R_1, t=t_1, near=0.1, far=1000, orig_size=512/scale_1)
+    renderer2 = nr.Renderer(image_size=512, camera_mode='projection', dist_coeffs=None, K=K, R=R_2, t=t_2, near=0.1, far=1000, orig_size=512/scale_2)
 
 # ---------------------------------------------------------------------------------
 # Render object
 # ---------------------------------------------------------------------------------
 
-    nb_obj2render = 1
+    nb_obj2render = 2
 
     loop = tqdm.tqdm(range(0, 1, 1))
     writer = imageio.get_writer(args.filename_output, mode='i')

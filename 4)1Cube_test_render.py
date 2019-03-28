@@ -50,8 +50,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name)))
     parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Name)))
-    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, '{}_render.png'.format(Name)))
-    parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, '{}_silhouette.png'.format(Name)))
+    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, '{}_1render.png'.format(Name)))
+    parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, '{}_1silhouette.png'.format(Name)))
     parser.add_argument('-g', '--gpu', type=int, default=0)
     args = parser.parse_args()
 
