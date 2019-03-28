@@ -49,7 +49,7 @@ def main():
     Name = 'dice3'
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name)))
-    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, 'rubik2_colored.mtl'))
+    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Name)))
     parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, '{}_render.png'.format(Name)))
     parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, '{}_silhouette.png'.format(Name)))
     parser.add_argument('-g', '--gpu', type=int, default=0)
@@ -72,10 +72,10 @@ def main():
 
     # to gpu
 # ---------------------------------------------------------------------------------
-# extrinsic parameter, link world/object coordinate to camera coordinate
+# extrinsic parameter, link camera coordinate to world/object coordinate
 # ---------------------------------------------------------------------------------
-    alpha = 0  # x-axis rotation
-    beta = 20  # y-axis rotation
+    alpha = 20 # x-axis rotation
+    beta = 0  # y-axis rotation
     gamma = 0
 
     tx = 1  #in meter
