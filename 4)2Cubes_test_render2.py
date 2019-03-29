@@ -17,33 +17,36 @@ from math import pi
 current_dir = os.path.dirname(os.path.realpath(__file__))
 data_dir = os.path.join(current_dir, 'data')
 
-def AxisBlend2Rend(tx =0 , ty=0, tz=0, alpha=0, beta=0, gamma =0):
+def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
 
     alpha = alpha - pi/2
-    save = beta
-    beta = gamma
-    gamma = -save
+    # save = beta
+    # beta = gamma
+    # gamma = -save
 
     Rx = np.array([[1, 0, 0],
                    [0, m.cos(alpha), -m.sin(alpha)],
                    [0, m.sin(alpha), m.cos(alpha)]])
 
-    Ry = np.array([[m.cos(beta), 0, m.sin(beta)],
+    Ry = np.array([[m.cos(beta), 0, -m.sin(beta)],
                    [0, 1, 0],
-                   [-m.sin(beta), 0, m.cos(beta)]])
+                   [m.sin(beta), 0, m.cos(beta)]])
 
-    Rz = np.array([[m.cos(gamma), -m.sin(gamma), 0],
-                   [m.sin(gamma), m.cos(gamma), 0],
+    Rz = np.array([[m.cos(gamma), m.sin(gamma), 0],
+                   [-m.sin(gamma), m.cos(gamma), 0],
                    [0, 0, 1]])
 
     #creaete the rotation object matrix
 
-    R = np.matmul(Rx, Ry)
-    R = np.matmul(R, Rz)
+    Rzy = np.matmul(Rz, Ry)
+    Rzyx = np.matmul(Rzy, Rx)
+
+    # R = np.matmul(Rx, Ry)
+    # R = np.matmul(R, Rz)
 
     t = np.array([tx, -ty, -tz])
 
-    return t, R
+    return t, Rzyx
 
 def main():
     Name_1 = 'Large_dice'
@@ -111,12 +114,13 @@ def main():
     tz_1 = -5
     scale_1 = 1
 #-----------------------------------
-    alpha_2 = 60  # x-axis rotation
-    beta_2 = 20 # y-axis rotation
-    gamma_2 = 204  # z-axis rotation
+
+    alpha_2 = -34  # x-axis rotation
+    beta_2 = 224 # y-axis rotation
+    gamma_2 = 207  # z-axis rotation
 
 
-    tx_2 = 0  # in meter
+    tx_2 = 2 # in meter
     ty_2 = 0
     tz_2 = -5
     scale_2 = 1
