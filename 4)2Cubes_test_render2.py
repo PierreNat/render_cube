@@ -49,11 +49,11 @@ def main():
     Name_1 = 'Large_dice'
     Name_2 = 'Small_dice'
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name)))
-    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name)))
-    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Name)))
-    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, '{}_2render.png'.format(Name)))
-    parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, '{}_2silhouette.png'.format(Name)))
+    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name_1)))
+    parser.add_argument('-j', '--filename_input2', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name_2)))
+    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Name_1)))
+    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, '2dices_2render.png'))
+    parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, '2dices_2silhouette.png'))
     parser.add_argument('-g', '--gpu', type=int, default=0)
     args = parser.parse_args()
 
@@ -62,12 +62,15 @@ def main():
     elevation = 30
     texture_size = 2
 
-    vertices, faces = nr.load_obj(args.filename_input)
-    vertices = vertices[None, :, :]  # [num_vertices, XYZ] -> [batch_size=1, num_vertices, XYZ]
-    faces = faces[None, :, :]  # [num_faces, 3] -> [batch_size=1, num_faces, 3]
+    vertices_1, faces_1 = nr.load_obj(args.filename_input)
+    vertices_2, faces_2 = nr.load_obj(args.filename_input2)
+    vertices_1 = vertices_1[None, :, :]  # [num_vertices, XYZ] -> [batch_size=1, num_vertices, XYZ]
+    vertices_2 = vertices_2[None, :, :]
+    faces_1 = faces_1[None, :, :]  # [num_faces, 3] -> [batch_size=1, num_faces, 3]
+    faces_2 = faces_2[None, :, :]
 
-    textures = torch.ones(1, faces.shape[1], texture_size, texture_size, texture_size, 3, dtype=torch.float32).cuda()
-
+    textures_1 = torch.ones(1, faces_1.shape[1], texture_size, texture_size, texture_size, 3, dtype=torch.float32).cuda()
+    textures_2 = torch.ones(1, faces_2.shape[1], texture_size, texture_size, texture_size, 3, dtype=torch.float32).cuda()
     # to gpu
 
 
@@ -87,7 +90,7 @@ def main():
     Cam_centerX = resolutionX / 2
     Cam_centerY = resolutionY / 2
 
-    batch = vertices.shape[0]
+    batch = vertices_1.shape[0]
 
     K  = np.array([[f/pix_sizeX,0,Cam_centerX],
                   [0,f/pix_sizeY,Cam_centerY],
@@ -99,23 +102,24 @@ def main():
 # extrinsic parameter, link camera coordinate to world/object coordinate
 # ---------------------------------------------------------------------------------
 
-    alpha_1 = 20  # x-axis rotation
-    beta_1 = 10  # y-axis rotation
-    gamma_1 = 5  # z-axis rotation
+    alpha_1 = 0  # x-axis rotation
+    beta_1 = 0  # y-axis rotation
+    gamma_1 = 0  # z-axis rotation
 
-    tx_1 = 0.56  # in meter
-    ty_1 = -1.92
-    tz_1 = -3.89
+    tx_1 = -2  # in meter
+    ty_1 = 0
+    tz_1 = -5
     scale_1 = 1
-
+#-----------------------------------
     alpha_2 = 0  # x-axis rotation
     beta_2 = 0  # y-axis rotation
     gamma_2 = 0  # z-axis rotation
 
-    tx_2 = 0  # in meter
+
+    tx_2 = 2  # in meter
     ty_2 = 0
-    tz_2 = -3.89
-    scale_2 = 0.5
+    tz_2 = -5
+    scale_2 = 1
 
     t_1, R_1 = AxisBlend2Rend(tx_1, ty_1, tz_1, m.radians(alpha_1), m.radians(beta_1), m.radians(gamma_1))
     t_2, R_2 = AxisBlend2Rend(tx_2, ty_2, tz_2, m.radians(alpha_2), m.radians(beta_2), m.radians(gamma_2))
@@ -145,12 +149,12 @@ def main():
         loop.set_description('Rendering objects')
 
         if nb_obj2render == 1:  # render 1 3d object
-            images_1 = renderer(vertices, faces, textures)  # [batch_size, RGB, image_size, image_size]
+            images_1 = renderer(vertices_1, faces_1, textures_1)  # [batch_size, RGB, image_size, image_size]
             image = images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0))
 
         else: # render 2 3d objects
-            images_1 = renderer(vertices, faces, textures)
-            images_2 = renderer2(vertices, faces, textures)
+            images_1 = renderer(vertices_1, faces_1, textures_1)
+            images_2 = renderer2(vertices_2, faces_2, textures_2)
 
             image = np.minimum(images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0)),
                                images_2[0].detach().cpu().numpy()[0].transpose((1, 2, 0)))
@@ -170,12 +174,12 @@ def main():
         loop.set_description('Rendering objects silhouettes')
 
         if nb_obj2render == 1:  # render 1 3d object
-            images_1 = renderer(vertices, faces, textures, mode='silhouettes')  # [batch_size, RGB, image_size, image_size]
+            images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes')  # [batch_size, RGB, image_size, image_size]
             image = images_1.detach().cpu().numpy().transpose((1, 2, 0))
 
         else:  # render 2 3d objects
-            images_1 = renderer(vertices, faces, textures, mode='silhouettes')
-            images_2 = renderer2(vertices, faces, textures, mode='silhouettes')
+            images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes')
+            images_2 = renderer2(vertices_2, faces_2, textures_2, mode='silhouettes')
             image = np.maximum(images_1.detach().cpu().numpy().transpose((1, 2, 0)),
                                images_2.detach().cpu().numpy().transpose((1, 2, 0)))
 

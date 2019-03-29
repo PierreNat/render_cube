@@ -46,7 +46,7 @@ def AxisBlend2Rend(tx =0 , ty=0, tz=0, alpha=0, beta=0, gamma =0):
     return t, R
 
 def main():
-    Name = 'dice3'
+    Name = 'Small_dice'
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name)))
     parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Name)))
@@ -74,12 +74,12 @@ def main():
 # ---------------------------------------------------------------------------------
 # extrinsic parameter, link camera coordinate to world/object coordinate
 # ---------------------------------------------------------------------------------
-    alpha = 20 # x-axis rotation
+    alpha = 0 # x-axis rotation
     beta = 0  # y-axis rotation
     gamma = 0
 
-    tx = 1  #in meter
-    ty = -1
+    tx = 0  #in meter
+    ty = 0
     tz = -5
  
     resolutionX = 512  # in pixel
