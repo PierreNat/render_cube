@@ -47,7 +47,7 @@ def AxisBlend2Rend(tx =0 , ty=0, tz=0, alpha=0, beta=0, gamma =0):
 
 def main():
     Name_1 = 'Large_dice'
-    Name_2 = 'Small_dice'
+    Name_2 = 'arrow'
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name_1)))
     parser.add_argument('-j', '--filename_input2', type=str, default=os.path.join(data_dir, '{}.obj'.format(Name_2)))
@@ -111,12 +111,12 @@ def main():
     tz_1 = -5
     scale_1 = 1
 #-----------------------------------
-    alpha_2 = 0  # x-axis rotation
-    beta_2 = 0  # y-axis rotation
-    gamma_2 = 0  # z-axis rotation
+    alpha_2 = 60  # x-axis rotation
+    beta_2 = 20 # y-axis rotation
+    gamma_2 = 204  # z-axis rotation
 
 
-    tx_2 = 2  # in meter
+    tx_2 = 0  # in meter
     ty_2 = 0
     tz_2 = -5
     scale_2 = 1
