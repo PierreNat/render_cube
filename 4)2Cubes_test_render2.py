@@ -35,7 +35,7 @@ def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
                    [-m.sin(gamma), m.cos(gamma), 0],
                    [0, 0, 1]])
 
-    #creaete the rotation object matrix
+#creaete the rotation object matrix
 
     Rzy = np.matmul(Rz, Ry)
     Rzyx = np.matmul(Rzy, Rx)
