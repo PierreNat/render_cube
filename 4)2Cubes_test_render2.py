@@ -1,6 +1,5 @@
 """
-Example 1. fixing the axis issue to be consistent with Blender transformation
-Camera is fixed
+working version of rendering 2 objects (cube-cone) given t and R
 """
 import os
 import argparse
@@ -119,8 +118,7 @@ def main():
     beta_2 = 224 # y-axis rotation
     gamma_2 = 207  # z-axis rotation
 
-
-    tx_2 = 2 # in meter
+    tx_2 = 0
     ty_2 = 0
     tz_2 = -5
     scale_2 = 1
@@ -128,8 +126,9 @@ def main():
     t_1, R_1 = AxisBlend2Rend(tx_1, ty_1, tz_1, m.radians(alpha_1), m.radians(beta_1), m.radians(gamma_1))
     t_2, R_2 = AxisBlend2Rend(tx_2, ty_2, tz_2, m.radians(alpha_2), m.radians(beta_2), m.radians(gamma_2))
 
-    R_1 = np.repeat(R_1[np.newaxis, :, :], batch, axis=0)  # shape of [batch=1, 3, 3]
-    R_2 = np.repeat(R_2[np.newaxis, :, :], batch, axis=0)  # shape of [batch=1, 3, 3]
+    R_1 = np.repeat(R_1[np.newaxis, :, :], batch, axis=0)  # shape of [batc
+    tx_2 = 2 # in meterh=1, 3, 3]
+    R_2 = np.repeat(R_2[np.newaxis, :, :], batch, axis=0)  # shape of    tx_2 = 2 # in meter [batch=1, 3, 3]
     t_1 = np.repeat(t_1[np.newaxis, :], 1, axis=0)  # shape of [1, 3]
     t_2 = np.repeat(t_2[np.newaxis, :], 1, axis=0)
 
