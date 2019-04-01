@@ -97,6 +97,7 @@ def creation_database(Obj_Name, nb_im=10000, R=np.array([0, 0, 0]),  t=np.array(
         args = parser.parse_args()
 
         texture_size = 2
+
         vertices_1, faces_1 = nr.load_obj(args.filename_input)
         vertices_1 = vertices_1[None, :, :]  # [num_vertices, XYZ] -> [batch_size=1, num_vertices, XYZ]
         faces_1 = faces_1[None, :, :]  # [num_faces, 3] -> [batch_size=1, num_faces, 3]
@@ -110,9 +111,10 @@ def creation_database(Obj_Name, nb_im=10000, R=np.array([0, 0, 0]),  t=np.array(
         t = np.array([0, 0, -5])  # translation in meter
 
         cam = camera_setttings(R, t, nb_vertices)
+
         renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
                                K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255,255,255],
-                               far=1000, orig_size=1, light_direction=[0,-1,0])
+                               far=1000, orig_size=512, light_direction=[0,-1,0])
 
         images_1 = renderer(vertices_1, faces_1, textures_1)  # [batch_size, RGB, image_size, image_size]
         image = images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0))
