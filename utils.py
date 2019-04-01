@@ -1,6 +1,7 @@
 import torch
 import os
 import torch.nn as nn
+import imageio
 import argparse
 import numpy as np
 import math as m
@@ -67,12 +68,12 @@ class camera_setttings():
         self.gamma = R[2]
         self.tx = t[0]
         self.ty= t[1]
-        self.ty=t[2]
-        self.R_mat, self.t_mat = AxisBlend2Rend(self.tx, self.ty, self.tz, m.radians(self.alpha), m.radians(self.beta), m.radians(self.gamma))
+        self.tz=t[2]
+        self.t_mat, self.R_mat = AxisBlend2Rend(self.tx, self.ty, self.tz, m.radians(self.alpha), m.radians(self.beta), m.radians(self.gamma))
 
-        self.K_mat = np.repeat(camera_setttings.K[np.newaxis, :, :], vert, axis=0)
-        self.R_vertices = np.repeat(self.R_mat[np.newaxis, :, :], batch, axis=0)
-        self.t_vertices =  np.repeat(self.t_mat[np.newaxis, :], 1, axis=0)
+        self.K_vertices = np.repeat(camera_setttings.K[np.newaxis, :, :], vert, axis=0)
+        self.R_vertices = np.repeat(self.R_mat[np.newaxis, :, :], vert, axis=0)
+        self.t_vertices = np.repeat(self.t_mat[np.newaxis, :], 1, axis=0)
 
 
 # database creation ---------------------------------------
@@ -88,29 +89,44 @@ def creation_database(Obj_Name, nb_im=10000, R=np.array([0, 0, 0]),  t=np.array(
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Obj_Name)))
     parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Obj_Name)))
-    texture_size = 2
-    vertices_1, faces_1 = nr.load_obj(args.filename_input)
-    vertices_1 = vertices_1[None, :, :]  # [num_vertices, XYZ] -> [batch_size=1, num_vertices, XYZ]
-    faces_1 = faces_1[None, :, :]  # [num_faces, 3] -> [batch_size=1, num_faces, 3]
-    nb_vertices = vertices_1.shape[0]
-    textures_1 = torch.ones(1, faces_1.shape[1], texture_size, texture_size, texture_size, 3,
-                            dtype=torch.float32).cuda()
 
-
-    for i in nb_im:
+    for i in range(0, nb_im):
         parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'cube_{}.png'.format(i)))
         parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, 'silhouette_{}.png'.format(i)))
         parser.add_argument('-g', '--gpu', type=int, default=0)
         args = parser.parse_args()
 
-        #TODO loop in range, change R and t of the camera class, render = nr.render, render object, save
-        R = np.array([0, 0, 0]) #angle in degree param have to change
-        t = np.array([0, 0, 0]) #translation in meter
+        texture_size = 2
+        vertices_1, faces_1 = nr.load_obj(args.filename_input)
+        vertices_1 = vertices_1[None, :, :]  # [num_vertices, XYZ] -> [batch_size=1, num_vertices, XYZ]
+        faces_1 = faces_1[None, :, :]  # [num_faces, 3] -> [batch_size=1, num_faces, 3]
+        nb_vertices = vertices_1.shape[0]
+        textures_1 = torch.ones(1, faces_1.shape[1], texture_size, texture_size, texture_size, 3,
+                                dtype=torch.float32).cuda()
+
+        writer = imageio.get_writer(args.filename_output, mode='i')
+
+        R = np.array([0, 0, 0])  # angle in degree param have to change
+        t = np.array([0, 0, -5])  # translation in meter
 
         cam = camera_setttings(R, t, nb_vertices)
         renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
-                               K=cam.K, R=cam.R_mat, t=cam.t_mat, near=0.1, background_color=[255,255,255],
-                               far=1000, orig_size=512/scale_1, light_direction=[0,-1,0])
+                               K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255,255,255],
+                               far=1000, orig_size=1, light_direction=[0,-1,0])
 
-# set intrinsic camera parameters ---------------------------------------
+        images_1 = renderer(vertices_1, faces_1, textures_1)  # [batch_size, RGB, image_size, image_size]
+        image = images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0))
+
+        writer.append_data((255*image).astype(np.uint8))
+
+        writer.close()
+
+        writer = imageio.get_writer(args.filename_output2, mode='i')
+        images_1 = renderer(vertices_1, faces_1, textures_1,
+                            mode='silhouettes')  # [batch_size, RGB, image_size, image_size]
+        image = images_1.detach().cpu().numpy().transpose((1, 2, 0))
+        writer.append_data((255 * image).astype(np.uint8))
+        writer.close()
+
+
 
