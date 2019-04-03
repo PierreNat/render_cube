@@ -6,14 +6,17 @@ import argparse
 import numpy as np
 import math as m
 from math import pi
+from numpy.random import uniform
 import neural_renderer as nr
+
+# ---------------------------------------------------------------------------------
+# convert the coordinate system of rendered image to be the same as the blender object exportation
+# creation of the 3x3 rotation matrix and the 1x3 translation vector
+# ---------------------------------------------------------------------------------
 
 def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
 
     alpha = alpha - pi/2
-    # save = beta
-    # beta = gamma
-    # gamma = -save
 
     Rx = np.array([[1, 0, 0],
                    [0, m.cos(alpha), -m.sin(alpha)],
@@ -39,6 +42,28 @@ def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
 
     return t, Rzyx
 
+# ---------------------------------------------------------------------------------
+# random set translation and rotation parameter
+# ---------------------------------------------------------------------------------
+
+def get_param():
+
+    constraint_x = 2.5
+    constraint_y   = 2.5
+
+    constraint_angle = 180
+
+    x = round(uniform(-constraint_x, constraint_x), 1)
+    y = round(uniform(-constraint_y, constraint_y), 1)
+    z =round( uniform(-15, -5), 1)
+
+    alpha = round(uniform(-constraint_angle,constraint_angle), 0)
+    beta = round(uniform(-constraint_angle,constraint_angle), 0)
+    gamma = round(uniform(-constraint_angle,constraint_angle), 0)
+    return alpha, beta, gamma, x, y, z
+# ---------------------------------------------------------------------------------
+# definition of the class camera with intrinsic and extrinsic parameter
+# ---------------------------------------------------------------------------------
 class camera_setttings():
     # instrinsic camera parameter are fixed
 
@@ -107,8 +132,10 @@ def creation_database(Obj_Name, nb_im=10000):
 
         writer = imageio.get_writer(args.filename_output, mode='i')
 
-        R = np.array([0, 0, 0])  # angle in degree param have to change
-        t = np.array([0, 0, -5])  # translation in meter
+        alpha, beta, gamma, x, y, z = get_param() #define transformation parameter
+
+        R = np.array([alpha, beta, gamma])  # angle in degree param have to change
+        t = np.array([x, y, z])  # translation in meter
 
         cam = camera_setttings(R, t, nb_vertices)
 
