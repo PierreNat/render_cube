@@ -77,22 +77,22 @@ class camera_setttings():
 
 
 # database creation ---------------------------------------
-# in: number of images
-# out: validation bool
-
-def creation_database(Obj_Name, nb_im=10000, R=np.array([0, 0, 0]),  t=np.array([0, 0, 0])):
-    print(nb_im)
+# in: object (.obj file) name
+# in: number of images do produce
 
 
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    data_dir = os.path.join(current_dir, 'data')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Obj_Name)))
-    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Obj_Name)))
+def creation_database(Obj_Name, nb_im=10000):
+    print("creation of 2 x %d images" % nb_im)
 
     for i in range(0, nb_im):
-        parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'cube_{}.png'.format(i)))
-        parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(data_dir, 'silhouette_{}.png'.format(i)))
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        data_dir = os.path.join(current_dir, 'data')
+        train_dir = os.path.join(current_dir, 'data/train')
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Obj_Name)))
+        parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Obj_Name)))
+        parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(train_dir, 'cube_{}.png'.format(i)))
+        parser.add_argument('-f', '--filename_output2', type=str, default=os.path.join(train_dir, 'silhouette_{}.png'.format(i)))
         parser.add_argument('-g', '--gpu', type=int, default=0)
         args = parser.parse_args()
 
