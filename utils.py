@@ -128,11 +128,12 @@ class camera_setttings():
 
 def creation_database(Obj_Name, nb_im=10000):
     print("creation of 2 x %d images" % nb_im)
+    first = True
 
     for i in range(0, nb_im):
         current_dir = os.path.dirname(os.path.realpath(__file__))
         data_dir = os.path.join(current_dir, 'data')
-        train_dir = os.path.join(current_dir, 'data/train')
+        train_dir = os.path.join(current_dir, 'data/test')
         parser = argparse.ArgumentParser()
         parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Obj_Name)))
         parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Obj_Name)))
@@ -168,6 +169,18 @@ def creation_database(Obj_Name, nb_im=10000):
 
         writer.append_data((255*image).astype(np.uint8))
 
+        if first:
+            filename = 'data/test/cube.npy'
+            file = open(filename, 'w')
+            np.save(filename, image)
+            first = False
+            file.close()
+        else:
+            file = open(filename, 'a')
+            np.save(filename, image)
+            file.close()
+
+
         writer.close()
 
         writer = imageio.get_writer(args.filename_output2, mode='i')
@@ -175,7 +188,13 @@ def creation_database(Obj_Name, nb_im=10000):
                             mode='silhouettes')  # [batch_size, RGB, image_size, image_size]
         image = images_1.detach().cpu().numpy().transpose((1, 2, 0))
         writer.append_data((255 * image).astype(np.uint8))
+
+        np.save('data/test/silhouette.npy', image)
         writer.close()
 
 
 
+
+# def save_pny():
+#     data = np.random.normal(0, 1, 100)
+#     np.save('data.npy', data)
