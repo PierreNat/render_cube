@@ -14,6 +14,7 @@ import neural_renderer as nr
 # creation of the 3x3 rotation matrix and the 1x3 translation vector
 # ---------------------------------------------------------------------------------
 
+
 def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
 
     alpha = alpha - pi/2
@@ -30,7 +31,8 @@ def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
                    [-m.sin(gamma), m.cos(gamma), 0],
                    [0, 0, 1]])
 
-#creaete the rotation object matrix
+
+# create the rotation object matrix
 
     Rzy = np.matmul(Rz, Ry)
     Rzyx = np.matmul(Rzy, Rx)
@@ -46,7 +48,8 @@ def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
 # random set translation and rotation parameter
 # ---------------------------------------------------------------------------------
 
-def get_param():
+
+def get_paramR_t():  # translation and rotation
 
     constraint_x = 2.5
     constraint_y   = 2.5
@@ -60,6 +63,23 @@ def get_param():
     alpha = round(uniform(-constraint_angle,constraint_angle), 0)
     beta = round(uniform(-constraint_angle,constraint_angle), 0)
     gamma = round(uniform(-constraint_angle,constraint_angle), 0)
+    return alpha, beta, gamma, x, y, z
+
+
+def get_param_t():  # only translation
+
+    constraint_x = 2.5
+    constraint_y   = 2.5
+
+    constraint_angle = 0
+
+    x = round(uniform(-constraint_x, constraint_x), 1)
+    y = round(uniform(-constraint_y, constraint_y), 1)
+    z =round( uniform(-15, -5), 1)
+
+    alpha = 0
+    beta = 0
+    gamma = 0
     return alpha, beta, gamma, x, y, z
 # ---------------------------------------------------------------------------------
 # definition of the class camera with intrinsic and extrinsic parameter
@@ -126,18 +146,18 @@ def creation_database(Obj_Name, nb_im=10000):
         vertices_1, faces_1 = nr.load_obj(args.filename_input)
         vertices_1 = vertices_1[None, :, :]  # [num_vertices, XYZ] -> [batch_size=1, num_vertices, XYZ]
         faces_1 = faces_1[None, :, :]  # [num_faces, 3] -> [batch_size=1, num_faces, 3]
-        nb_vertices = vertices_1.shape[0]
+        nb_vertices = vertices_1.shape[0] #number of batch
         textures_1 = torch.ones(1, faces_1.shape[1], texture_size, texture_size, texture_size, 3,
                                 dtype=torch.float32).cuda()
 
         writer = imageio.get_writer(args.filename_output, mode='i')
 
-        alpha, beta, gamma, x, y, z = get_param() #define transformation parameter
+        alpha, beta, gamma, x, y, z = get_param_t() #define transformation parameter
 
         R = np.array([alpha, beta, gamma])  # angle in degree param have to change
         t = np.array([x, y, z])  # translation in meter
 
-        cam = camera_setttings(R, t, nb_vertices)
+        cam = camera_setttings(R=R, t=t, vert=nb_vertices)
 
         renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
                                K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255,255,255],
