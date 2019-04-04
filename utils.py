@@ -128,7 +128,8 @@ class camera_setttings():
 
 def creation_database(Obj_Name, nb_im=10000):
     print("creation of 2 x %d images" % nb_im)
-    first = True
+    first_im = True
+    first_sil = True
 
     for i in range(0, nb_im):
         current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -153,7 +154,7 @@ def creation_database(Obj_Name, nb_im=10000):
 
         writer = imageio.get_writer(args.filename_output, mode='i')
 
-        alpha, beta, gamma, x, y, z = get_param_t() #define transformation parameter
+        alpha, beta, gamma, x, y, z = get_param_t()  # define transformation parameter
 
         R = np.array([alpha, beta, gamma])  # angle in degree param have to change
         t = np.array([x, y, z])  # translation in meter
@@ -168,19 +169,17 @@ def creation_database(Obj_Name, nb_im=10000):
         image = images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0))
 
         writer.append_data((255*image).astype(np.uint8))
+        filename = 'data/test/cube.npy'
+        if first_im:
+            image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
+            np.save(filename, image_expand)
+            first_im = False
 
-        if first:
-            filename = 'data/test/cube.npy'
-            file = open(filename, 'w')
-            np.save(filename, image)
-            first = False
-            file.close()
         else:
-            file = open(filename, 'a')
-            np.save(filename, image)
-            file.close()
-
-
+            all_im = np.load(filename)
+            image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
+            img_cat  = np.concatenate((all_im, image_expand))  # append to the existing images
+            np.save(filename, img_cat)
         writer.close()
 
         writer = imageio.get_writer(args.filename_output2, mode='i')
@@ -189,7 +188,17 @@ def creation_database(Obj_Name, nb_im=10000):
         image = images_1.detach().cpu().numpy().transpose((1, 2, 0))
         writer.append_data((255 * image).astype(np.uint8))
 
-        np.save('data/test/silhouette.npy', image)
+        filename = 'data/test/silhouettes.npy'
+        if first_im:
+            image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
+            np.save(filename, image_expand)
+            first_im = False
+
+        else:
+            all_im = np.load(filename)
+            image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
+            img_cat  = np.concatenate((all_im, image_expand))  # append to the existing images
+            np.save(filename, img_cat)
         writer.close()
 
 

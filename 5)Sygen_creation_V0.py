@@ -27,7 +27,7 @@ def main():
 
     nb_im = 2
 
-    creation_database(obj_name, nb_im) #call
+    creation_database(obj_name, nb_im)  # create the dataset
 
 
 
