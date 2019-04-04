@@ -11,14 +11,19 @@ import torch
 fig=plt.figure()
 cube = np.load('cube.npy')
 sil = np.load('silhouettes.npy')
-
-img = cube[1]
-img2 = sil[1]
+param = np.load('param.npy')
+img = cube[0]
+img2 = sil[0]
 img2 = np.squeeze(img2)
 fig.add_subplot(1, 3, 1)
 plt.imshow(img)
 fig.add_subplot(1, 3, 2)
 plt.imshow(img2, cmap='gray')
+
+x = np.array((1,2,3))
+y = np.array((4,5,6))
+xy = np.concatenate((x, y), axis=None)
+#try to direct append
 
 #
 #img_expand = np.expand_dims(cube, axis=0)

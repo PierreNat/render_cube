@@ -25,7 +25,7 @@ def main():
 
     obj_name = 'Large_dice'
 
-    nb_im = 3
+    nb_im = 10
 
     creation_database(obj_name, nb_im)  # create the dataset
 

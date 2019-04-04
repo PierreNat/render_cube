@@ -130,6 +130,7 @@ def creation_database(Obj_Name, nb_im=10000):
     print("creation of 2 x %d images" % nb_im)
     first_im = True
     first_sil = True
+    first_param = True
 
     for i in range(0, nb_im):
         # create path
@@ -160,6 +161,8 @@ def creation_database(Obj_Name, nb_im=10000):
         R = np.array([alpha, beta, gamma])  # angle in degree param have to change
         t = np.array([x, y, z])  # translation in meter
 
+        Rt =  np.concatenate((R, t), axis=None) # create one array of parameter
+
         # create camera with given parameters
         cam = camera_setttings(R=R, t=t, vert=nb_vertices)
 
@@ -169,18 +172,19 @@ def creation_database(Obj_Name, nb_im=10000):
                                far=1000, orig_size=512, light_direction=[0,-1,0])
 
         # save the image in pgn form
-        # writer = imageio.get_writer(args.filename_output, mode='i')
+        #writer = imageio.get_writer(args.filename_output, mode='i')
 
         # render an image of the 3d object
         images_1 = renderer(vertices_1, faces_1, textures_1)  # [batch_size, RGB, image_size, image_size]
-        image = images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0))
-
-        # writer.append_data((255*image).astype(np.uint8))
+        image = images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0)) #float32 from 0 to 255
+        im_norm = (255*image) #float32 from 76 to 65025
+        im2save = im_norm.astype(np.uint8) #uint8 from 1 to 206
+        #writer.append_data(im2save)
 
         # save the image in array form
         filename = 'data/test/cube.npy'
-        first_im = save_pny(filename,first_im, image)
-        # writer.close()
+        first_im = save_pny(filename, first_im, im2save)
+        #writer.close()
 
         # create the segmentation of the image
         # writer = imageio.get_writer(args.filename_output2, mode='i')
@@ -191,9 +195,12 @@ def creation_database(Obj_Name, nb_im=10000):
         # writer.append_data((255 * image).astype(np.uint8))
 
         filename = 'data/test/silhouettes.npy'
-        first_sil = save_pny(filename, first_sil, image)
+        first_sil = save_pny(filename, first_sil, image.astype(np.int8))
 
         # writer.close()
+
+        filename = 'data/test/param.npy'
+        first_param = save_pny(filename, first_param, Rt.astype(np.float16))
 
 # save images in npy file ---------------------------------------
 # in: filename to write in
