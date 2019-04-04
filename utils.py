@@ -162,7 +162,7 @@ def creation_database(Obj_Name, nb_im=10000):
         cam = camera_setttings(R=R, t=t, vert=nb_vertices)
 
         renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
-                               K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255,255,255],
+                               K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255, 255, 255],
                                far=1000, orig_size=512, light_direction=[0,-1,0])
 
         images_1 = renderer(vertices_1, faces_1, textures_1)  # [batch_size, RGB, image_size, image_size]
@@ -170,16 +170,7 @@ def creation_database(Obj_Name, nb_im=10000):
 
         writer.append_data((255*image).astype(np.uint8))
         filename = 'data/test/cube.npy'
-        if first_im:
-            image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
-            np.save(filename, image_expand)
-            first_im = False
-
-        else:
-            all_im = np.load(filename)
-            image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
-            img_cat  = np.concatenate((all_im, image_expand))  # append to the existing images
-            np.save(filename, img_cat)
+        first_im = save_pny(filename,first_im, image)
         writer.close()
 
         writer = imageio.get_writer(args.filename_output2, mode='i')
@@ -189,21 +180,26 @@ def creation_database(Obj_Name, nb_im=10000):
         writer.append_data((255 * image).astype(np.uint8))
 
         filename = 'data/test/silhouettes.npy'
-        if first_im:
-            image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
-            np.save(filename, image_expand)
-            first_im = False
+        first_sil = save_pny(filename, first_sil, image)
 
-        else:
-            all_im = np.load(filename)
-            image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
-            img_cat  = np.concatenate((all_im, image_expand))  # append to the existing images
-            np.save(filename, img_cat)
         writer.close()
 
+# save images in npy file ---------------------------------------
+# in: filename to write in
+# in: boolean if it-s the first object to be written (file creation)
+# in: image to write in file
+# out: boolean update if it was the first image
 
 
+def save_pny(filename, firstornot, image):
+    if firstornot:
+        image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
+        np.save(filename, image_expand)
+        firstornot = False
+        return firstornot
 
-# def save_pny():
-#     data = np.random.normal(0, 1, 100)
-#     np.save('data.npy', data)
+    else:
+        all_im = np.load(filename)
+        image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
+        img_cat = np.concatenate((all_im, image_expand))  # append to the existing images
+        np.save(filename, img_cat)
