@@ -132,6 +132,7 @@ def creation_database(Obj_Name, nb_im=10000):
     first_sil = True
 
     for i in range(0, nb_im):
+        # create path
         current_dir = os.path.dirname(os.path.realpath(__file__))
         data_dir = os.path.join(current_dir, 'data')
         train_dir = os.path.join(current_dir, 'data/test')
@@ -145,6 +146,7 @@ def creation_database(Obj_Name, nb_im=10000):
 
         texture_size = 2
 
+        # extract information from object
         vertices_1, faces_1 = nr.load_obj(args.filename_input)
         vertices_1 = vertices_1[None, :, :]  # [num_vertices, XYZ] -> [batch_size=1, num_vertices, XYZ]
         faces_1 = faces_1[None, :, :]  # [num_faces, 3] -> [batch_size=1, num_faces, 3]
@@ -152,45 +154,52 @@ def creation_database(Obj_Name, nb_im=10000):
         textures_1 = torch.ones(1, faces_1.shape[1], texture_size, texture_size, texture_size, 3,
                                 dtype=torch.float32).cuda()
 
-        writer = imageio.get_writer(args.filename_output, mode='i')
-
+        # define extrinsic parameter
         alpha, beta, gamma, x, y, z = get_param_t()  # define transformation parameter
 
         R = np.array([alpha, beta, gamma])  # angle in degree param have to change
         t = np.array([x, y, z])  # translation in meter
 
+        # create camera with given parameters
         cam = camera_setttings(R=R, t=t, vert=nb_vertices)
 
+        # create the renderer
         renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
-                               K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255, 255, 255],
+                               K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255,255,255],
                                far=1000, orig_size=512, light_direction=[0,-1,0])
 
+        # save the image in pgn form
+        # writer = imageio.get_writer(args.filename_output, mode='i')
+
+        # render an image of the 3d object
         images_1 = renderer(vertices_1, faces_1, textures_1)  # [batch_size, RGB, image_size, image_size]
         image = images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0))
 
-        writer.append_data((255*image).astype(np.uint8))
+        # writer.append_data((255*image).astype(np.uint8))
+
+        # save the image in array form
         filename = 'data/test/cube.npy'
         first_im = save_pny(filename,first_im, image)
-        writer.close()
+        # writer.close()
 
-        writer = imageio.get_writer(args.filename_output2, mode='i')
-        images_1 = renderer(vertices_1, faces_1, textures_1,
-                            mode='silhouettes')  # [batch_size, RGB, image_size, image_size]
+        # create the segmentation of the image
+        # writer = imageio.get_writer(args.filename_output2, mode='i')
+
+        images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes')  # [batch_size, RGB, image_size, image_size]
         image = images_1.detach().cpu().numpy().transpose((1, 2, 0))
-        writer.append_data((255 * image).astype(np.uint8))
+
+        # writer.append_data((255 * image).astype(np.uint8))
 
         filename = 'data/test/silhouettes.npy'
         first_sil = save_pny(filename, first_sil, image)
 
-        writer.close()
+        # writer.close()
 
 # save images in npy file ---------------------------------------
 # in: filename to write in
 # in: boolean if it-s the first object to be written (file creation)
 # in: image to write in file
 # out: boolean update if it was the first image
-
-
 def save_pny(filename, firstornot, image):
     if firstornot:
         image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
