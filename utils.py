@@ -8,6 +8,7 @@ import math as m
 from math import pi
 from numpy.random import uniform
 import neural_renderer as nr
+import tqdm
 
 # ---------------------------------------------------------------------------------
 # convert the coordinate system of rendered image to be the same as the blender object exportation
@@ -131,8 +132,9 @@ def creation_database(Obj_Name, nb_im=10000):
     first_im = True
     first_sil = True
     first_param = True
-
-    for i in range(0, nb_im):
+    loop = tqdm.tqdm(range(0, nb_im))
+    for i in loop:
+        # loop.set_description('render png {}'.format(i))
         # create path
         current_dir = os.path.dirname(os.path.realpath(__file__))
         data_dir = os.path.join(current_dir, 'data')
@@ -188,7 +190,7 @@ def creation_database(Obj_Name, nb_im=10000):
 
         # create the segmentation of the image
         # writer = imageio.get_writer(args.filename_output2, mode='i')
-
+        # loop.set_description('render silhouette {}'.format(i))
         images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes')  # [batch_size, RGB, image_size, image_size]
         image = images_1.detach().cpu().numpy().transpose((1, 2, 0))
 
