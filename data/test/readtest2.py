@@ -11,8 +11,9 @@ import torch
 fig=plt.figure()
 num = 5
 cube = np.load('cubes.npy')
-sil = np.load('silhouettes.npy')
-param = np.load('param.npy')
+sil = np.load('sils.npy')
+param = np.load('params.npy')
+torch_cube = torch.from_numpy(cube) 
 img = cube[num]
 img2 = sil[num]
 #img2 = np.squeeze(img2)

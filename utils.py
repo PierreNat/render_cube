@@ -219,8 +219,8 @@ def creation_database(Obj_Name, nb_im=10000):
 
     #save database
     np.save('data/test/cubes.npy', cubes_database)
-    np.save('data/test/silhouettes.npy', sils_database)
-    np.save('data/test/param.npy', params_database)
+    np.save('data/test/sils.npy', sils_database)
+    np.save('data/test/params.npy', params_database)
 
 
 # save images in npy file ---------------------------------------
