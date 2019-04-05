@@ -15,19 +15,23 @@ def packFiles(path, filename):
     for file in loop:
         image = np.array(PIL.Image.open(path + "/" + file))
         size = image.shape
-        if first:      
-            if len(size)== 3:
+        
+        if len(size)== 3: #cube
+            if first_cube:
                 all_cube = np.expand_dims(image, 0) #cube image 
-                first_cube = False
+                first_cube = False                
             else:
-                all_sil = np.expand_dims(image, 0)
-                first_sil = False
-        else:
-            img_exp = np.expand_dims(image, 0) 
-            if len(size)==3:
+                img_exp = np.expand_dims(image, 0) 
                 all_cube = np.concatenate((all_cube, img_exp))
+            
+        else: #silhouette
+            if first_sil:
+                all_sil = np.expand_dims(image, 0)
+                first_sil = False                
             else:
+                img_exp = np.expand_dims(image, 0) 
                 all_sil = np.concatenate((all_sil, img_exp))
+                
                     
         imcount = imcount+1
         

@@ -6,6 +6,7 @@ import argparse
 import numpy as np
 import math as m
 from math import pi
+import PIL
 from numpy.random import uniform
 import neural_renderer as nr
 import tqdm
@@ -229,24 +230,35 @@ def save_pny(filename, firstornot, image):
         np.save(filename, img_cat)
 
 
-import os
-import sys
-import numpy as np
-import PIL
-
 
 def packFiles(path, filename):
-    tmp_data = []
-    for file in os.listdir(path):
-        image = PIL.Image.open(path + "/" + file)
+    imcount = 0
+    first_cube = True
+    first_sil = True
 
-        tmp_data.append(image)
+    loop = tqdm.tqdm(os.listdir(path))
+    for file in loop:
+        image = np.array(PIL.Image.open(path + "/" + file))
+        size = image.shape
 
-    np.savez(filename + ".npy", tmp_data)
+        if len(size) == 3:  # cube
+            if first_cube:
+                all_cube = np.expand_dims(image, 0)  # cube image
+                first_cube = False
+            else:
+                img_exp = np.expand_dims(image, 0)
+                all_cube = np.concatenate((all_cube, img_exp))
 
+        else:  # silhouette
+            if first_sil:
+                all_sil = np.expand_dims(image, 0)
+                first_sil = False
+            else:
+                img_exp = np.expand_dims(image, 0)
+                all_sil = np.concatenate((all_sil, img_exp))
 
-print("Packaging")
+        imcount = imcount + 1
 
-packFiles("downloadedFiles/ISIC-images/UDA-1", "testPackage1")
-
-print("Done")
+    np.save('cubes.npy', all_cube)
+    np.save('Silhouettes.npy', all_sil)
+    return imcount
