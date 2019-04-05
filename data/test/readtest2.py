@@ -9,12 +9,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 fig=plt.figure()
-cube = np.load('cube.npy')
+num = 5
+cube = np.load('cubes.npy')
 sil = np.load('silhouettes.npy')
 param = np.load('param.npy')
-img = cube[0]
-img2 = sil[0]
-img2 = np.squeeze(img2)
+img = cube[num]
+img2 = sil[num]
+#img2 = np.squeeze(img2)
 fig.add_subplot(1, 3, 1)
 plt.imshow(img)
 fig.add_subplot(1, 3, 2)

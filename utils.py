@@ -80,13 +80,13 @@ def get_param_t():  # only translation
     y = round(uniform(-constraint_y, constraint_y), 1)
     z = round( uniform(-15, -5), 1)
 
-    alpha = round(uniform(-constraint_angle, constraint_angle), 1)
-    beta = round(uniform(-constraint_angle, constraint_angle), 1)
-    gamma = round(uniform(-constraint_angle, constraint_angle), 1)
+    # alpha = round(uniform(-constraint_angle, constraint_angle), 1)
+    # beta = round(uniform(-constraint_angle, constraint_angle), 1)
+    # gamma = round(uniform(-constraint_angle, constraint_angle), 1)
 
-    # alpha = 0
-    # beta = 0
-    # gamma = 0
+    alpha = 0
+    beta = 0
+    gamma = 0
 
     return alpha, beta, gamma, x, y, z
 # ---------------------------------------------------------------------------------
@@ -139,6 +139,9 @@ def creation_database(Obj_Name, nb_im=10000):
     first_im = True
     first_sil = True
     first_param = True
+    cubes_database = 0
+    sils_database = 0
+    params_database = 0
     loop = tqdm.tqdm(range(0, nb_im))
     for i in loop:
         # loop.set_description('render png {}'.format(i))
@@ -191,8 +194,9 @@ def creation_database(Obj_Name, nb_im=10000):
         #writer.append_data(im2save)
 
         # save the image in array form
-        filename = 'data/test/cube.npy'
-        first_im = save_pny(filename, first_im, im2save)
+
+        cubes_database, first_im = appendElement(all_elem=cubes_database, elem=im2save, first=first_im)
+        # first_im = save_pny(filename, first_im, im2save)
         #writer.close()
 
         # create the segmentation of the image
@@ -203,19 +207,28 @@ def creation_database(Obj_Name, nb_im=10000):
 
         # writer.append_data((255 * image).astype(np.uint8))
 
-        filename = 'data/test/silhouettes.npy'
-        first_sil = save_pny(filename, first_sil, image.astype(np.int8))
+
+        sils_database, first_sil = appendElement(all_elem=sils_database, elem=np.squeeze(image.astype(np.int8)), first=first_sil)
+        # first_sil = save_pny(filename, first_sil, image.astype(np.int8))
 
         # writer.close()
 
-        filename = 'data/test/param.npy'
-        first_param = save_pny(filename, first_param, Rt.astype(np.float16))
+
+        params_database, first_param = appendElement(all_elem=params_database, elem=Rt.astype(np.float16), first=first_param)
+        # first_param = save_pny(filename, first_param, Rt.astype(np.float16))
+
+    #save database
+    np.save('data/test/cubes.npy', cubes_database)
+    np.save('data/test/silhouettes.npy', sils_database)
+    np.save('data/test/param.npy', params_database)
+
 
 # save images in npy file ---------------------------------------
 # in: filename to write in
 # in: boolean if it-s the first object to be written (file creation)
 # in: image to write in file
 # out: boolean update if it was the first image
+
 def save_pny(filename, firstornot, image):
     if firstornot:
         image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
@@ -230,6 +243,18 @@ def save_pny(filename, firstornot, image):
         np.save(filename, img_cat)
 
 
+def appendElement(all_elem, elem, first):
+
+    if first:
+        all_elem = np.expand_dims(elem, 0)  # create first element array
+        first = False
+    else:
+        elem_exp = np.expand_dims(elem, 0)
+        all_elem = np.concatenate((all_elem , elem_exp)) #append element to existing array
+
+
+
+    return all_elem, first
 
 def packFiles(path, filename):
     imcount = 0
