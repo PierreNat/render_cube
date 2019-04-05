@@ -72,15 +72,21 @@ def get_param_t():  # only translation
     constraint_x = 2.5
     constraint_y   = 2.5
 
-    constraint_angle = 0
+    constraint_angle = 180
 
+    #draw random value of R and t in a specific span
     x = round(uniform(-constraint_x, constraint_x), 1)
     y = round(uniform(-constraint_y, constraint_y), 1)
-    z =round( uniform(-15, -5), 1)
+    z = round( uniform(-15, -5), 1)
 
-    alpha = 0
-    beta = 0
-    gamma = 0
+    alpha = round(uniform(-constraint_angle, constraint_angle), 1)
+    beta = round(uniform(-constraint_angle, constraint_angle), 1)
+    gamma = round(uniform(-constraint_angle, constraint_angle), 1)
+
+    # alpha = 0
+    # beta = 0
+    # gamma = 0
+
     return alpha, beta, gamma, x, y, z
 # ---------------------------------------------------------------------------------
 # definition of the class camera with intrinsic and extrinsic parameter
@@ -221,3 +227,26 @@ def save_pny(filename, firstornot, image):
         image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
         img_cat = np.concatenate((all_im, image_expand))  # append to the existing images
         np.save(filename, img_cat)
+
+
+import os
+import sys
+import numpy as np
+import PIL
+
+
+def packFiles(path, filename):
+    tmp_data = []
+    for file in os.listdir(path):
+        image = PIL.Image.open(path + "/" + file)
+
+        tmp_data.append(image)
+
+    np.savez(filename + ".npy", tmp_data)
+
+
+print("Packaging")
+
+packFiles("downloadedFiles/ISIC-images/UDA-1", "testPackage1")
+
+print("Done")
