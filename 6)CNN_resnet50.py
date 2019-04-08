@@ -16,14 +16,8 @@ print(device)
 cubes_file = './data/test/cubes.npy'
 silhouettes_file = './data/test/sils.npy'
 parameters_file = './data/test/params.npy'
-# test_dir = './kaggle/test'
-# val_dir = './kaggle/valid'
-
-
-from torchvision.transforms import ToTensor, Compose  # Conversion to tensor, Composes several transforms together
 
 target_size = (512, 512)
-transforms = Compose([ToTensor()])# Converts to Tensor, scales to [0, 1] float (from [0, 255] int)
 
 cubes = np.load(cubes_file)
 sils = np.load(silhouettes_file)
@@ -44,7 +38,7 @@ val_sil = sils[split:]
 val_param = params[split:]
 
 test_im = cubes[:test_length]
-test_ctr = sils[:test_length]
+test_sil = sils[:test_length]
 test_param = params[:test_length]
 
 #  --------------------------------------------
@@ -53,34 +47,39 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor, Compose
 
-class Dataset(Dataset):
+class CubeDataset(Dataset):
     # write your code
-    def __init__(self, image, center, transform=None):
-        self.image = image  # our image
-        self.center = center  # our related center
+    def __init__(self, images, silhouettes, parameters, transform=None):
+        self.images = images.astype(np.uint8)  # our image
+        self.silhouettes = silhouettes.astype(np.uint8)  # our related parameter
+        self.parameters = parameters.astype(np.float16)
         self.transform = transform
 
     def __getitem__(self, index):
         # Anything could go here, e.g. image loading from file or a different structure
         # must return image and center
-        sel_image = self.image[index]
-        sel_center = self.center[index]
-        if self.transform is not None:
-            sel_image = self.transform(sel_image)
+        sel_images = self.images[index]
+        sel_sils = self.silhouettes[index]
+        sel_params = self.parameters[index]
 
-        return sel_image, torch.FloatTensor(sel_center)  # return 2 tensors
+        if self.transform is not None:
+            sel_images = self.transform(sel_images)
+            sel_sils = self.transform(sel_sils)
+
+        return sel_images, sel_sils, torch.FloatTensor(sel_params)  # return all parameter in tensor form
 
     def __len__(self):
-        return len(self.image)  # return how many images and center we have
+        return len(self.images)  # return the length of the dataset
 
 
 
 batch_size = 32
 
 transforms = Compose([ToTensor()])
-train_dataset = DigitDataset(train_im,train_ctr,transforms)
-val_dataset = DigitDataset(val_im,val_ctr,transforms)
-test_dataset = DigitDataset(test_im,test_ctr,transforms)
+train_dataset = CubeDataset(train_im, train_sil, train_param, transforms)
+val_dataset = CubeDataset(val_im, val_sil, val_param, transforms)
+test_dataset = CubeDataset(test_im, test_sil, test_param, transforms)
+
 #  Note:
 #  DataLoader(Dataset,int,bool,int)
 #  dataset (Dataset) – dataset from which to load the data.
@@ -89,32 +88,29 @@ test_dataset = DigitDataset(test_im,test_ctr,transforms)
 #  num_workers = n - how many threads in background for efficient loading
 
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=2)
 
-val_root_dir = val_dir
-val_dataset = ImageFolder(val_root_dir, transform=transforms)
+# --------------------------------------------
 
-val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2) #shuffle true or false?
-len(val_dataset)
+#  try to iterate over the train dataset
+import matplotlib.pyplot as plt
 
-# #--------------------------------------------
-#
-#
-# #try to iterate over the train dataset
-# for image, label in train_dataloader:
-#     print(image.size(), label.size())
-#     print(label)
-#     break #break here just to show 1 batch of data
-#
-#
-#
-#
-# #try to iterate over the validation dataset
-# for image, label in val_dataloader:
-#     print(image.size(), label.size())
-#     print(label)
-#     break #break here just to show 1 batch of data
+for image, silhouette, parameters in train_dataloader:
+    print('number of cube images: {}, number of silhouettes: {}, number of parameters: {}'.format(image.size(), silhouette.size(), parameters.size()))
 
-#--------------------------------------------
+    image2show = image[2]  # indexing random  one image
+
+    # tensor to numpy:
+    image2shownp = image2show.numpy().reshape((512, 512, 3))  # reshape the torch format to numpy
+    print('image has size: {}'.format(image2shownp.size))
+
+    plt.imshow(image2shownp)
+
+    break  # break here just to show 1 batch of data
+
+
+# --------------------------------------------
 
 # import torch.nn as nn
 # import torch.nn.functional as F
