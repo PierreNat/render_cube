@@ -26,6 +26,8 @@ plt.show()
 x = np.array((1,2,3))
 y = np.array((4,5,6))
 xy = np.concatenate((x, y), axis=None)
+
+np.savez('cubes.npz','cubes.npy')
 #try to direct append
 
 #
