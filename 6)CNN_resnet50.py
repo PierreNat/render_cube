@@ -29,28 +29,73 @@ cubes = np.load(cubes_file)
 sils = np.load(silhouettes_file)
 params = np.load(parameters_file)
 
-# len(train_dataset) #contain all images of the set, dereferencable with train_dataset[x][0] -->23000 
-# type(train_dataset)
-#
-# #--------------------------------------------
-#
-#
-# from torch.utils.data import DataLoader
-# batch_size = 4
-# #DataLoader(Dataset,int,bool,int)
-# #dataset (Dataset) – dataset from which to load the data.
-# #batch_size (int, optional) – how many samples per batch to load (default: 1)
-# #shuffle (bool, optional) – set to True to have the data reshuffled at every epoch (default: False).
-# #num_workers = n - how many threads in background for efficient loading
-#
-# train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-#
-# val_root_dir = val_dir
-# val_dataset = ImageFolder(val_root_dir, transform=transforms)
-#
-# val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2) #shuffle true or false?
-# len(val_dataset)
-#
+# split set of data
+
+ratio = 0.9  # 90%training 10%validation
+split = int(len(cubes)*0.9)
+test_length = 1000
+
+train_im = cubes[:split]  # 90% training
+train_sil = sils[:split]
+train_param = params[:split]
+
+val_im = cubes[split:]  # remaining ratio for validation
+val_sil = sils[split:]
+val_param = params[split:]
+
+test_im = cubes[:test_length]
+test_ctr = sils[:test_length]
+test_param = params[:test_length]
+
+#  --------------------------------------------
+
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
+from torchvision.transforms import ToTensor, Compose
+
+class Dataset(Dataset):
+    # write your code
+    def __init__(self, image, center, transform=None):
+        self.image = image  # our image
+        self.center = center  # our related center
+        self.transform = transform
+
+    def __getitem__(self, index):
+        # Anything could go here, e.g. image loading from file or a different structure
+        # must return image and center
+        sel_image = self.image[index]
+        sel_center = self.center[index]
+        if self.transform is not None:
+            sel_image = self.transform(sel_image)
+
+        return sel_image, torch.FloatTensor(sel_center)  # return 2 tensors
+
+    def __len__(self):
+        return len(self.image)  # return how many images and center we have
+
+
+
+batch_size = 32
+
+transforms = Compose([ToTensor()])
+train_dataset = DigitDataset(train_im,train_ctr,transforms)
+val_dataset = DigitDataset(val_im,val_ctr,transforms)
+test_dataset = DigitDataset(test_im,test_ctr,transforms)
+#  Note:
+#  DataLoader(Dataset,int,bool,int)
+#  dataset (Dataset) – dataset from which to load the data.
+#  batch_size (int, optional) – how many samples per batch to load (default: 1)
+#  shuffle (bool, optional) – set to True to have the data reshuffled at every epoch (default: False).
+#  num_workers = n - how many threads in background for efficient loading
+
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+
+val_root_dir = val_dir
+val_dataset = ImageFolder(val_root_dir, transform=transforms)
+
+val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2) #shuffle true or false?
+len(val_dataset)
+
 # #--------------------------------------------
 #
 #
