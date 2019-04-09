@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 fig=plt.figure()
-num = 5
+num = 0
 cube = np.load('cubes.npy')
 sil = np.load('sils.npy')
 param = np.load('params.npy')

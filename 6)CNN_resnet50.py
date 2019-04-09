@@ -110,6 +110,8 @@ for image, silhouette, parameters in train_dataloader:
     break  # break here just to show 1 batch of data
 
 
+--> catalogue Jupyter
+
 # --------------------------------------------
 
 # import torch.nn as nn
