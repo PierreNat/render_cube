@@ -310,7 +310,6 @@ class ResNet(nn.Module):
         return x
 
 
-
 def resnet50(pretrained=True, **kwargs):
     """Constructs a ResNet-50 model.
     Args:
@@ -318,18 +317,25 @@ def resnet50(pretrained=True, **kwargs):
     """
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        print('download coefficient from model zoo')
-        model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
+        print('using pre-trained model')
+        pretrained_state = model_zoo.load_url(model_urls['resnet50'])
+        model_state = model.state_dict()
+        pretrained_state = {k: v for k, v in pretrained_state.items() if
+                            k in model_state and v.size() == model_state[k].size()}
+        model_state.update(pretrained_state)
+        model.load_state_dict(model_state)
+
         print('download finished')
     return model
+
 #  ------------------------------------------------------------------
+
 import torch.optim as optim
 
 model = resnet50()
 model = model.to(device)  # transfer the neural net onto the GPU
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.001,
-                      momentum=0.9)  # learning step and momentum accelerate gradients vectors in the right directions
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)  # learning step and momentum accelerate gradients vectors in the right directions
 
 #  ------------------------------------------------------------------
 import numpy as np
@@ -407,7 +413,3 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
 
 n_epochs = 1
 train_losses, val_losses, train_accuracies, val_accuracies = train(model, train_dataloader, val_dataloader, optimizer, n_epochs, criterion)
-
-#  ------------------------------------------------------------------
-
-#  ------------------------------------------------------------------
