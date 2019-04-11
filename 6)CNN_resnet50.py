@@ -336,7 +336,8 @@ import torch.optim as optim
 model = resnet50()
 model = model.to(device)  # transfer the neural net onto the GPU
 criterion = nn.MSELoss()
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)  # learning step and momentum accelerate gradients vectors in the right directions
+learning_rate = 0.001
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 #  ---------------------------------------------------------------
 import numpy as np
@@ -362,8 +363,6 @@ def train(model, train_dataloader, optimizer, n_epochs, loss_function):
             silhouette = silhouette.to(device)
             predicted_params = model(image)  # run prediction; output <- vector with probabilities of each class
 
-            # print(predicted_params)  # should return 6 parameter [Rx Ry Rz Tx Ty Tz]
-            # break
 
             # zero the parameter gradients
             optimizer.zero_grad()
