@@ -343,13 +343,13 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 import numpy as np
 import tqdm
 
-def train(model, train_dataloader, optimizer, n_epochs, loss_function):
+def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_function, threshold):
     # monitor loss functions as the training progresses
     train_losses = []
-    train_accuracies = []
-    val_losses = 0
-    val_accuracies = 0
-    count = 0
+
+    val_losses = []
+
+
 
     for epoch in range(n_epochs):
         ## Training phase
@@ -358,6 +358,8 @@ def train(model, train_dataloader, optimizer, n_epochs, loss_function):
         parameters = []  # ground truth labels
         losses = []  # running loss
         loop = tqdm.tqdm(train_dataloader)
+        count = 0
+
         for image, silhouette, parameter in loop:
             image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
             silhouette = silhouette.to(device)
@@ -372,23 +374,82 @@ def train(model, train_dataloader, optimizer, n_epochs, loss_function):
             # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
 
             loss = loss_function(predicted_params, parameter) #MSE  value ?
-            print('run: {} MSE_loss: {}'.format(count+1, loss))
 
             loss.backward()
             optimizer.step()
 
             predictions.extend(prediction)              # append all predictions in 1 array [len(loader) x 6]
             parameters.extend(parameter.cpu().numpy())  # append ground truth label
-            losses.append(loss.item())  # running lossn
+            losses.append(loss.item())  # batch length is append every time
             count = count+1
 
-        train_losses.append(losses)  # global losses array on the way
+            av_loss = np.mean(np.array(losses))
+            train_losses.append(av_loss)  # global losses array on the way
+            print('run: {} MSE train loss: {:.4f}'.format(count + 1, av_loss))
 
-    return train_losses, count
+            if loss < threshold:  #early stop to avoid over fitting
+                break
+
+        count2 = 0
+        loop = tqdm.tqdm(val_dataloader)
+        for image, silhouette, parameter in loop:
+            model.eval()
+            image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
+            silhouette = silhouette.to(device)
+            predicted_params = model(image)  # run prediction; output <- vector with probabilities of each class
+
+
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            prediction = predicted_params.detach().cpu().numpy().argmax(1)  # what is most likely the image?
+
+            # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
+
+            loss = loss_function(predicted_params, parameter) #MSE  value ?
+
+
+            predictions.extend(prediction)              # append all predictions in 1 array [len(loader) x 6]
+            parameters.extend(parameter.cpu().numpy())  # append ground truth label
+            losses.append(loss.item())  # running loss
+
+            count2 = count2 + 1
+            av_loss = np.mean(np.array(losses))
+            val_losses.append(av_loss)  # global losses array on the way
+
+            print('run: {} MSE val loss: {:.4f}'.format(count2 + 1, av_loss))
+
+            if count2 == count:  # early stop to avoid over fitting
+                break
+
+    return train_losses, val_losses, count, count2
 
 
 #  ------------------------------------------------------------------
 
 
 n_epochs = 1
-train_losses, val_losses, count = train(model, train_dataloader, optimizer, n_epochs, criterion)
+train_losses, val_losses, count, count2 = train(model, train_dataloader, val_dataloader, optimizer, n_epochs, criterion, threshold=0)
+
+#  ------------------------------------------------------------------
+
+torch.save(model.state_dict(), './model_trained.pth')
+
+#  ------------------------------------------------------------------
+
+import matplotlib.pyplot as plt
+
+def plot(count, train_losses):
+    plt.figure()
+    plt.plot(np.arange(count), train_losses) #display evenly scale with arange
+    # plt.plot(np.arange(n_epochs), val_losses)
+    plt.legend(['train_loss'])
+    plt.xlabel('runs in dataloader')
+    plt.ylabel('loss value')
+    plt.title('Train loss')
+
+
+plot(count, train_losses)
+
+#  ------------------------------------------------------------------
+#test set
