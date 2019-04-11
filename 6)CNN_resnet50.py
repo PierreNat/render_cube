@@ -70,7 +70,7 @@ class CubeDataset(Dataset):
         return len(self.images)  # return the length of the dataset
 #  ------------------------------------------------------------------
 
-batch_size = 8
+batch_size = 32
 
 transforms = Compose([ToTensor()])
 train_dataset = CubeDataset(train_im, train_sil, train_param, transforms)
@@ -90,41 +90,41 @@ test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_work
 
 #  ------------------------------------------------------------------
 
-#  try to iterate over the train dataset
-import matplotlib.pyplot as plt
-
-fig = plt.figure()
-
-for image, silhouette, parameters in train_dataloader:
-    print('number of cube images: {}, number of silhouettes: {}, number of parameters: {}'.format(image.size(),
-                                                                                                  silhouette.size(),
-                                                                                                  parameters.size()))
-
-    im = 2
-    image2show = image[im]  # indexing random  one image
-    sil2show = silhouette[im]
-    param = parameters[im]
-
-    #     print('image has size: {}'.format(image2show.size))
-
-    # tensor to numpy:
-    image2shownp = image2show.numpy()
-    sil2shownp = sil2show.numpy()
-    #     .reshape((512, 512,3))  # reshape the torch format to numpy
-    print('silhouette has size: {}'.format(np.shape(sil2shownp)))
-
-    image2shownp = np.transpose(image2shownp, (1, 2, 0))
-    sil2shownp = np.squeeze(
-        np.transpose(sil2shownp, (1, 2, 0)))  # squeeze allow to remove the third dimension [512, 512, 1] --> [512, 512]
-    #     print(image2shownp.shape)
-    fig.add_subplot(1, 2, 1)
-    plt.imshow(image2shownp)
-
-    fig.add_subplot(1, 2, 2)
-    plt.imshow(sil2shownp, cmap='gray')
-    print(param.numpy())
-
-    break  # break here just to show 1 batch of data
+# #  try to iterate over the train dataset
+# import matplotlib.pyplot as plt
+#
+# fig = plt.figure()
+#
+# for image, silhouette, parameters in train_dataloader:
+#     print('number of cube images: {}, number of silhouettes: {}, number of parameters: {}'.format(image.size(),
+#                                                                                                   silhouette.size(),
+#                                                                                                   parameters.size()))
+#
+#     im = 2
+#     image2show = image[im]  # indexing random  one image
+#     sil2show = silhouette[im]
+#     param = parameters[im]
+#
+#     #     print('image has size: {}'.format(image2show.size))
+#
+#     # tensor to numpy:
+#     image2shownp = image2show.numpy()
+#     sil2shownp = sil2show.numpy()
+#     #     .reshape((512, 512,3))  # reshape the torch format to numpy
+#     print('silhouette has size: {}'.format(np.shape(sil2shownp)))
+#
+#     image2shownp = np.transpose(image2shownp, (1, 2, 0))
+#     sil2shownp = np.squeeze(
+#         np.transpose(sil2shownp, (1, 2, 0)))  # squeeze allow to remove the third dimension [512, 512, 1] --> [512, 512]
+#     #     print(image2shownp.shape)
+#     fig.add_subplot(1, 2, 1)
+#     plt.imshow(image2shownp)
+#
+#     fig.add_subplot(1, 2, 2)
+#     plt.imshow(sil2shownp, cmap='gray')
+#     print(param.numpy())
+#
+#     break  # break here just to show 1 batch of data
 
 #  ------------------------------------------------------------------
 import torch.nn as nn
@@ -357,8 +357,8 @@ def train(model, train_dataloader, optimizer, n_epochs, loss_function):
         predictions = []  # parameter prediction
         parameters = []  # ground truth labels
         losses = []  # running loss
-
-        for image, silhouette, parameter in train_dataloader:
+        loop = tqdm.tqdm(train_dataloader)
+        for image, silhouette, parameter in loop:
             image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
             silhouette = silhouette.to(device)
             predicted_params = model(image)  # run prediction; output <- vector with probabilities of each class
