@@ -6,9 +6,10 @@ Cube test Resnet 50
 import torch
 import numpy as np
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-torch.cuda.empty_cache()
-print(device)
+device = torch.device('cpu')
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# torch.cuda.empty_cache()
+# print(device)
 
 
 cubes_file = './data/test/cubes.npy'
@@ -69,7 +70,7 @@ class CubeDataset(Dataset):
         return len(self.images)  # return the length of the dataset
 #  ------------------------------------------------------------------
 
-batch_size = 32
+batch_size = 8
 
 transforms = Compose([ToTensor()])
 train_dataset = CubeDataset(train_im, train_sil, train_param, transforms)
@@ -99,7 +100,7 @@ for image, silhouette, parameters in train_dataloader:
                                                                                                   silhouette.size(),
                                                                                                   parameters.size()))
 
-    im = 22
+    im = 2
     image2show = image[im]  # indexing random  one image
     sil2show = silhouette[im]
     param = parameters[im]
@@ -334,82 +335,61 @@ import torch.optim as optim
 
 model = resnet50()
 model = model.to(device)  # transfer the neural net onto the GPU
-criterion = nn.CrossEntropyLoss()
+criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)  # learning step and momentum accelerate gradients vectors in the right directions
 
-#  ------------------------------------------------------------------
+#  ---------------------------------------------------------------
 import numpy as np
+import tqdm
 
-
-def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_function):
+def train(model, train_dataloader, optimizer, n_epochs, loss_function):
     # monitor loss functions as the training progresses
     train_losses = []
     train_accuracies = []
-    val_losses = []
-    val_accuracies = []
+    val_losses = 0
+    val_accuracies = 0
+    count = 0
 
     for epoch in range(n_epochs):
         ## Training phase
 
         predictions = []  # parameter prediction
-        labels = []  # ground truth labels
+        parameters = []  # ground truth labels
         losses = []  # running loss
+
         for image, silhouette, parameter in train_dataloader:
             image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
             silhouette = silhouette.to(device)
             predicted_params = model(image)  # run prediction; output <- vector with probabilities of each class
 
-            print(output)  # should return 6 parameter [Rx Ry Rz Tx Ty Tz]
-            break
+            # print(predicted_params)  # should return 6 parameter [Rx Ry Rz Tx Ty Tz]
+            # break
 
             # zero the parameter gradients
             optimizer.zero_grad()
 
             prediction = predicted_params.detach().cpu().numpy().argmax(1)  # what is most likely the image?
-            loss = loss_function(predicted_params, parameter)
+
+            # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
+
+            loss = loss_function(predicted_params, parameter) #MSE  value ?
+            print('run: {} MSE_loss: {}'.format(count+1, loss))
+
             loss.backward()
             optimizer.step()
 
-            predictions.extend(prediction)  # append prediction
-            labels.extend(label.cpu().numpy())  # append ground truth label
-            losses.append(loss.item())  # running loss
+            predictions.extend(prediction)              # append all predictions in 1 array [len(loader) x 6]
+            parameters.extend(parameter.cpu().numpy())  # append ground truth label
+            losses.append(loss.item())  # running lossn
+            count = count+1
 
-        accuracy = 100 * np.sum(np.array(predictions) == np.array(labels)) / len(np.array(labels))
+        train_losses.append(losses)  # global losses array on the way
 
-        train_accuracy.append(accuracy)
-        train_losses.append(np.mean(np.array(losses)))  # global losses array on the way
-        # #--------------------------------------------
-        #         # Evaluation phase
-
-        #         correct_val_predictions = 0 # We will measure accuracy
-        #         # Iterate mini batches over validation set
-        #         # We don't need gradients
-        #         losses = []
-        #         with torch.no_grad():
-        #             for image, silhouette, parameters in val_dataloader:
-        #                 images = images.to(device)
-        #                 labels = labels.to(device)
-        #                 output = model(images)
-        #                 loss = loss_function(output, labels)
-
-        #                 losses.append(loss.item())
-        #                 predicted_labels = output.argmax(dim=1)
-        #                 n_correct = (predicted_labels == labels).sum().item()
-        #                 correct_val_predictions += n_correct
-        #         val_losses.append(np.mean(np.array(losses)))
-        #         val_accuracies.append(100.0*correct_val_predictions/len(val_dataloader.dataset))
-
-        print('Epoch {}/{}: train_loss: {:.4f}, train_accuracy: {:.4f}, val_loss: {:.4f}, val_accuracy: {:.4f}'.format(
-            epoch + 1, n_epochs,
-            train_losses[-1],
-            train_accuracies[-1],
-            val_losses[-1],
-            val_accuracies[-1]))
-    return train_losses, val_losses, train_accuracies, val_accuracies
+    return train_losses, count
 
 
 #  ------------------------------------------------------------------
 
 
 n_epochs = 1
-train_losses, val_losses, train_accuracies, val_accuracies = train(model, train_dataloader, val_dataloader, optimizer, n_epochs, criterion)
+train_losses, val_losses, count = train(model, train_dataloader, optimizer, n_epochs, criterion)
