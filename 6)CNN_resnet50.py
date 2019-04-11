@@ -387,8 +387,8 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
             train_losses.append(av_loss)  # global losses array on the way
             print('run: {} MSE train loss: {:.4f}'.format(count + 1, av_loss))
 
-            if loss < threshold:  #early stop to avoid over fitting
-                break
+            # if loss < threshold:  #early stop to avoid over fitting
+            #     break
 
         count2 = 0
         loop = tqdm.tqdm(val_dataloader)
@@ -433,8 +433,8 @@ train_losses, val_losses, count, count2 = train(model, train_dataloader, val_dat
 
 #  ------------------------------------------------------------------
 
-torch.save(model.state_dict(), './model_trained.pth')
-
+torch.save(model.state_dict(), './model_trainednight.pth')
+print('parameters saved')
 #  ------------------------------------------------------------------
 
 import matplotlib.pyplot as plt
@@ -452,4 +452,18 @@ def plot(count, train_losses):
 plot(count, train_losses)
 
 #  ------------------------------------------------------------------
+
+
+def plot(count, val_losses):
+    plt.figure()
+    plt.plot(np.arange(count), val_losses) #display evenly scale with arange
+    # plt.plot(np.arange(n_epochs), val_losses)
+    plt.legend(['train_loss'])
+    plt.xlabel('runs in dataloader')
+    plt.ylabel('loss value')
+    plt.title('Train loss')
+
+
+plot(count2, val_losses)
+
 #test set
