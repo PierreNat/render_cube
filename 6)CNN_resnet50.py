@@ -428,7 +428,7 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
 #  ------------------------------------------------------------------
 
 
-n_epochs = 1
+n_epochs = 3
 train_losses, val_losses, count, count2 = train(model, train_dataloader, val_dataloader, optimizer, n_epochs, criterion, threshold=0)
 
 #  ------------------------------------------------------------------
