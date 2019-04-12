@@ -8,7 +8,7 @@ import torch.nn as nn
 import numpy as np
 import tqdm
 import utils
-
+import matplotlib.pyplot as plt
 
 device = torch.device('cpu')
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -299,20 +299,23 @@ test_losses, count, parameters, predicted_params = test(model, test_dataloader, 
 
 #  ------------------------------------------------------------------
 # display computed parameter against ground truth
-import matplotlib.pyplot as plt
+
 from utils import render_1_image
 obj_name = 'Large_dice'
-im, sil = render_1_image(obj_name, predicted_params[i])  # create the dataset
 
-#  ------------------------------------------------------------------
+nb_im = 10
+for i in range(nb_im):
+    print('computed parameter_{}: '.format(i+1))
+    print(predicted_params[i])
+    print('ground truth parameter_{}: '.format(i+1))
+    print(params[i])
+    im, sil = render_1_image(obj_name, predicted_params[i])  # create the dataset
 
-# nb_im = 1
-# for i in range(nb_im):
-#     plt.subplot(1, nb_im, i+1)
-#     print('computed parameter_{}: '.format(i+1))
-#     print(predicted_params[i])
-#     print('ground truth parameter_{}: '.format(i+1))
-#     print(params[i])
-#     # plt.imshow(test_im[i])
-#     im, sil = render_1_image(obj_name, predicted_params[i])  # create the dataset
-#     plt.imshow(im)
+    plt.subplot(2, nb_im, i+1)
+    plt.imshow(test_im[i])
+
+    plt.subplot(2, nb_im, i+1+nb_im)
+    plt.imshow(im)
+
+
+plt.show()

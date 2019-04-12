@@ -11,16 +11,16 @@ from utils import render_1_image
 
 obj_name = 'Large_dice'
 predicted_params = np.array([0, 0, 0, 1, 1, -5])
-im, sil = render_1_image(obj_name, predicted_params )  # create the dataset
-plt.subplot(1,2, 1)
-plt.imshow(im)
+im, sil = render_1_image(obj_name, predicted_params)  # create the dataset
 
+nb_im = 4
+for i in range(nb_im):
+    plt.subplot(2, nb_im, i + 1)
+    plt.imshow(im)
 
-plt.subplot(1,2, 2)
-plt.imshow(sil.squeeze(), cmap='gray')
-
+    plt.subplot(2, nb_im, i + 1 + 4)
+    plt.imshow(sil.squeeze())
 plt.show()
-
 #  ------------------------------------------------------------------
 
 # nb_im = 1
