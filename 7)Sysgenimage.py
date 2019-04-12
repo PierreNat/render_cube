@@ -3,33 +3,24 @@
 test Resnet 50
 
 """
-import torch
-import torch.nn as nn
+
 import numpy as np
-import tqdm
-import utils
-
-
-device = torch.device('cpu')
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# torch.cuda.empty_cache()
-# print(device)
-
-
-
-#  ------------------------------------------------------------------
-# display computed parameter against ground truth
 import matplotlib.pyplot as plt
 
 from utils import render_1_image
 
 obj_name = 'Large_dice'
 predicted_params = np.array([0, 0, 0, 1, 1, -5])
-im, sil = render_1_image(obj_name,predicted_params )  # create the dataset
-plt.subplot(1, 2, 0)
+im, sil = render_1_image(obj_name, predicted_params )  # create the dataset
+plt.subplot(1,2, 1)
 plt.imshow(im)
-plt.subplot(1, 2, 1)
-plt.imshow(sil
+
+
+plt.subplot(1,2, 2)
+plt.imshow(sil.squeeze(), cmap='gray')
+
+plt.show()
+
 #  ------------------------------------------------------------------
 
 # nb_im = 1
