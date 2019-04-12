@@ -289,4 +289,65 @@ def packFiles(path, filename):
     return imcount
 
 
-def Transform1point(params0ftransf):
+def render_1_image(Obj_Name, params):
+
+    print("creation of a single image")
+
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    data_dir = os.path.join(current_dir, 'data')
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, '{}.obj'.format(Obj_Name)))
+    parser.add_argument('-c', '--color_input', type=str, default=os.path.join(data_dir, '{}.mtl'.format(Obj_Name)))
+    parser.add_argument('-g', '--gpu', type=int, default=0)
+    args = parser.parse_args()
+
+    texture_size = 2
+
+    # extract information from object
+    vertices_1, faces_1 = nr.load_obj(args.filename_input)
+    vertices_1 = vertices_1[None, :, :]  # [num_vertices, XYZ] -> [batch_size=1, num_vertices, XYZ]
+    faces_1 = faces_1[None, :, :]  # [num_faces, 3] -> [batch_size=1, num_faces, 3]
+    nb_vertices = vertices_1.shape[0] #number of batch
+    textures_1 = torch.ones(1, faces_1.shape[1], texture_size, texture_size, texture_size, 3,
+                            dtype=torch.float32).cuda()
+
+    # define extrinsic parameter
+    alpha = params[0]
+    beta = params[1]
+    gamma = params[2]
+    x = params[3]
+    y = params[4]
+    z = params[5]
+
+    R = np.array([alpha, beta, gamma])  # angle in degree param have to change
+    t = np.array([x, y, z])  # translation in meter
+
+    Rt = np.concatenate((R, t), axis=None) # create one array of parameter
+
+    # create camera with given parameters
+    cam = camera_setttings(R=R, t=t, vert=nb_vertices)
+
+    # create the renderer
+    renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
+                           K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255,255,255],
+                           far=1000, orig_size=512, light_direction=[0,-1,0])
+
+
+    # render an image of the 3d object
+    images_1 = renderer(vertices_1, faces_1, textures_1)  # [batch_size, RGB, image_size, image_size]
+    image = images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0)) #float32 from 0 to 255
+    im_norm = (255*image) #float32 from 76 to 65025
+    final_im = im_norm.astype(np.uint8) #uint8 from 1 to 206
+
+
+    # create the segmentation of the image
+
+    images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes')  # [batch_size, RGB, image_size, image_size]
+    final_sil = images_1.detach().cpu().numpy().transpose((1, 2, 0))
+
+    return final_im, final_sil
+
+
+
+
