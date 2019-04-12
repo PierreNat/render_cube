@@ -13,10 +13,64 @@ device = torch.device('cpu')
 
 
 
+cubes_file = './data/test/cubes.npy'
+silhouettes_file = './data/test/sils.npy'
+parameters_file = './data/test/params.npy'
+
+target_size = (512, 512)
+
+cubes = np.load(cubes_file)
+sils = np.load(silhouettes_file)
+params = np.load(parameters_file)
 
 #  ------------------------------------------------------------------
-import torch.nn as nn
-import torch.nn.functional as F
+test_length = 1000
+
+test_im = cubes[:test_length]
+test_sil = sils[:test_length]
+test_param = params[:test_length]
+
+#  ------------------------------------------------------------------
+
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
+from torchvision.transforms import ToTensor, Compose
+
+class CubeDataset(Dataset):
+    # write your code
+    def __init__(self, images, silhouettes, parameters, transform=None):
+        self.images = images.astype(np.uint8)  # our image
+        self.silhouettes = silhouettes.astype(np.uint8)  # our related parameter
+        self.parameters = parameters.astype(np.float16)
+        self.transform = transform
+
+    def __getitem__(self, index):
+        # Anything could go here, e.g. image loading from file or a different structure
+        # must return image and center
+        sel_images = self.images[index]
+        sel_sils = self.silhouettes[index]
+        sel_params = self.parameters[index]
+
+        if self.transform is not None:
+            sel_images = self.transform(sel_images)
+            sel_sils = self.transform(sel_sils)
+
+        return sel_images, sel_sils, torch.FloatTensor(sel_params)  # return all parameter in tensor form
+
+    def __len__(self):
+        return len(self.images)  # return the length of the dataset
+#  ------------------------------------------------------------------
+
+batch_size = 32
+
+transforms = Compose([ToTensor()])
+
+test_dataset = CubeDataset(test_im, test_sil, test_param, transforms)
+
+test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=2)
+
+#  ------------------------------------------------------------------
+
 import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
@@ -24,15 +78,6 @@ import torch.utils.model_zoo as model_zoo
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152']
-
-model_urls = {
-    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
-    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
-    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
-    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
-    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
-}
-
 
 
 
@@ -206,14 +251,8 @@ def resnet50(pretrained=True, **kwargs):
     """
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        print('using pre-trained model')
-        pretrained_state = model_zoo.load_url(model_urls['resnet50'])
-        model_state = model.state_dict()
-        pretrained_state = {k: v for k, v in pretrained_state.items() if
-                            k in model_state and v.size() == model_state[k].size()}
-        model_state.update(pretrained_state)
-        model.load_state_dict(model_state)
-
+        print('using own pre-trained model')
+        model.load_state_dict(torch.load('./model_trained.pth'))
         print('download finished')
     return model
 
@@ -224,12 +263,52 @@ import torch.optim as optim
 model = resnet50()
 model = model.to(device)  # transfer the neural net onto the GPU
 criterion = nn.MSELoss()
-learning_rate = 0.001
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 #  ------------------------------------------------------------------
 
-model = resnet50()
-model.load_state_dict(torch.load(PATH))
-model.eval()
+#  ---------------------------------------------------------------
+import numpy as np
+import tqdm
 
+def test(model, test_dataloader, loss_function):
+    # monitor loss functions as the training progresses
+    test_losses = []
+
+    # test phase
+    parameters = []  # ground truth labels
+    losses = []  # running loss
+    count2 = 0
+
+    loop = tqdm.tqdm(test_dataloader)
+    for image, silhouette, parameter in loop:
+        model.eval()
+        image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
+        silhouette = silhouette.to(device)
+        parameter = parameter.to(device)
+        predicted_params = model(image)  # run prediction; output <- vector with probabilities of each class
+
+       # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
+
+        loss = loss_function(predicted_params, parameter) #MSE  value ?
+
+
+        predictions.extend(prediction)              # append all predictions in 1 array [len(loader) x 6]
+        parameters.extend(parameter.cpu().numpy())  # append ground truth label
+        losses.append(loss.item())  # running loss
+
+        count2 = count2 + 1
+        av_loss = np.mean(np.array(losses))
+        val_losses.append(av_loss)  # global losses array on the way
+
+        print('run: {} MSE test loss: {:.4f}'.format(count2 + 1, av_loss))
+
+        if count2 == count:  # early stop to avoid over fitting
+            break
+
+    return train_losses, val_losses, count, params, computed_params
+
+
+#  ------------------------------------------------------------------
+
+
+test_losses, count = test(model, test_dataloader, criterion)

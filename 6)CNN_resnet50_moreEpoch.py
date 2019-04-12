@@ -356,7 +356,6 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
         print('run epoch: {} '.format(epoch))
         ## Training phase
         model.train()
-        predictions = []  # parameter prediction
         parameters = []  # ground truth labels
 
         losses = []  # running loss
@@ -370,7 +369,6 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
             # zero the parameter gradients
             optimizer.zero_grad()
 
-            prediction = predicted_params.detach().cpu().numpy().argmax(1)  # what is most likely the image?
 
             # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
 
@@ -379,7 +377,6 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
             loss.backward()
             optimizer.step()
 
-            predictions.extend(prediction)              # append all predictions in 1 array [len(loader) x 6]
             parameters.extend(parameter.cpu().numpy())  # append ground truth label
             losses.append(loss.item())  # batch length is append every time
             count = count+1
@@ -406,14 +403,10 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
             # zero the parameter gradients
             optimizer.zero_grad()
 
-            prediction = predicted_params.detach().cpu().numpy().argmax(1)  # what is most likely the image?
-
             # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
 
             loss = loss_function(predicted_params, parameter) #MSE  value ?
 
-
-            predictions.extend(prediction)  # append all predictions in 1 array [len(loader) x 6]
             parameters.extend(parameter.cpu().numpy())  # append ground truth label
             losses.append(loss.item())  # running loss
 
