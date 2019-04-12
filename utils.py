@@ -323,7 +323,6 @@ def render_1_image(Obj_Name, params):
     R = np.array([alpha, beta, gamma])  # angle in degree param have to change
     t = np.array([x, y, z])  # translation in meter
 
-    Rt = np.concatenate((R, t), axis=None) # create one array of parameter
 
     # create camera with given parameters
     cam = camera_setttings(R=R, t=t, vert=nb_vertices)
