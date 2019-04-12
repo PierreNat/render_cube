@@ -4,13 +4,15 @@ test Resnet 50
 
 """
 import torch
+import torch.nn as nn
 import numpy as np
+import tqdm
+import utils
 
 device = torch.device('cpu')
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # torch.cuda.empty_cache()
 # print(device)
-
 
 
 cubes_file = './data/test/cubes.npy'
@@ -61,8 +63,6 @@ class CubeDataset(Dataset):
         return len(self.images)  # return the length of the dataset
 #  ------------------------------------------------------------------
 
-batch_size = 32
-
 transforms = Compose([ToTensor()])
 
 test_dataset = CubeDataset(test_im, test_sil, test_param, transforms)
@@ -71,14 +71,8 @@ test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_work
 
 #  ------------------------------------------------------------------
 
-import torch.nn as nn
-import math
-import torch.utils.model_zoo as model_zoo
-
-
-__all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
-           'resnet152']
-
+# __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
+#            'resnet152']
 
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1):
@@ -253,22 +247,19 @@ def resnet50(pretrained=True, **kwargs):
     if pretrained:
         print('using own pre-trained model')
         model.load_state_dict(torch.load('./model_trained.pth'))
+        model.eval()
         print('download finished')
     return model
 
 #  ------------------------------------------------------------------
 
-import torch.optim as optim
 
 model = resnet50()
 model = model.to(device)  # transfer the neural net onto the GPU
 criterion = nn.MSELoss()
 
-#  ------------------------------------------------------------------
-
 #  ---------------------------------------------------------------
-import numpy as np
-import tqdm
+
 
 def test(model, test_dataloader, loss_function):
     # monitor loss functions as the training progresses
@@ -276,39 +267,44 @@ def test(model, test_dataloader, loss_function):
 
     # test phase
     parameters = []  # ground truth labels
+    predicted_params = []
     losses = []  # running loss
     count2 = 0
 
     loop = tqdm.tqdm(test_dataloader)
     for image, silhouette, parameter in loop:
-        model.eval()
+
         image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
-        silhouette = silhouette.to(device)
-        parameter = parameter.to(device)
-        predicted_params = model(image)  # run prediction; output <- vector with probabilities of each class
+        predicted_param = model(image)  # run prediction; output <- vector with probabilities of each class
 
-       # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
+        loss = loss_function(predicted_param, parameter) #MSE  value ?
 
-        loss = loss_function(predicted_params, parameter) #MSE  value ?
-
-
-        predictions.extend(prediction)              # append all predictions in 1 array [len(loader) x 6]
-        parameters.extend(parameter.cpu().numpy())  # append ground truth label
+        parameters.extend(parameter.detach().cpu().numpy())  # append ground truth parameters
+        predicted_params.extend(predicted_param.detach().cpu().numpy()) # append computed parameters
         losses.append(loss.item())  # running loss
 
         count2 = count2 + 1
         av_loss = np.mean(np.array(losses))
-        val_losses.append(av_loss)  # global losses array on the way
+        test_losses.append(av_loss)  # global losses array on the way
 
         print('run: {} MSE test loss: {:.4f}'.format(count2 + 1, av_loss))
 
-        if count2 == count:  # early stop to avoid over fitting
-            break
-
-    return train_losses, val_losses, count, params, computed_params
+    return test_losses, count2, parameters, predicted_params
 
 
 #  ------------------------------------------------------------------
+# test the model
+test_losses, count, parameters, predicted_params = test(model, test_dataloader, criterion)
 
+#  ------------------------------------------------------------------
+# display computed parameter against ground truth
+import matplotlib.pyplot as plt
 
-test_losses, count = test(model, test_dataloader, criterion)
+nb_im = 5
+for i in range(nb_im):
+    plt.subplot(1, nb_im, i+1)
+    print('computed parameter_{}: '.format(i+1))
+    print(predicted_params[i])
+    print('ground truth parameter_{}: '.format(i+1))
+    print(params[i])
+    plt.imshow(test_im[i])

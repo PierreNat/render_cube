@@ -287,3 +287,6 @@ def packFiles(path, filename):
     np.save('cubes.npy', all_cube)
     np.save('Silhouettes.npy', all_sil)
     return imcount
+
+
+def Transform1point(params0ftransf):
