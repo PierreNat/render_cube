@@ -247,7 +247,7 @@ def resnet50(pretrained=True, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         print('using own pre-trained model')
-        model.load_state_dict(torch.load('./model_trained.pth'))
+        model.load_state_dict(torch.load('./model_train_nepoch.pth'))
         model.eval()
         print('download finished')
     return model

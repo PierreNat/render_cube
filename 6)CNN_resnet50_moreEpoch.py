@@ -428,7 +428,7 @@ train_losses, val_losses, count, count2 = train(model, train_dataloader, val_dat
 
 #  ------------------------------------------------------------------
 
-torch.save(model.state_dict(), './model_train_nepoch.pth')
+torch.save(model.state_dict(), './model_train_nepoch2.pth')
 print('parameters saved')
 #  ------------------------------------------------------------------
 
