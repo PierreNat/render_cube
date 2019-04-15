@@ -222,27 +222,9 @@ def creation_database(Obj_Name, nb_im=10000):
     np.save('data/test/sils.npy', sils_database)
     np.save('data/test/params.npy', params_database)
 
-
-# save images in npy file ---------------------------------------
-# in: filename to write in
-# in: boolean if it-s the first object to be written (file creation)
-# in: image to write in file
-# out: boolean update if it was the first image
-
-def save_pny(filename, firstornot, image):
-    if firstornot:
-        image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
-        np.save(filename, image_expand)
-        firstornot = False
-        return firstornot
-
-    else:
-        all_im = np.load(filename)
-        image_expand = np.expand_dims(image, 0)  # [512,512,3] -> [1, 512, 512, 3]
-        img_cat = np.concatenate((all_im, image_expand))  # append to the existing images
-        np.save(filename, img_cat)
-
-
+# append element ---------------------------------------
+# in: a list of all element
+# in: boolean to see if we are writing the first elelemnt, othewise append to the existing list
 def appendElement(all_elem, elem, first):
 
     if first:
@@ -252,43 +234,10 @@ def appendElement(all_elem, elem, first):
         elem_exp = np.expand_dims(elem, 0)
         all_elem = np.concatenate((all_elem , elem_exp)) #append element to existing array
 
-
-
     return all_elem, first
 
-def packFiles(path, filename):
-    imcount = 0
-    first_cube = True
-    first_sil = True
 
-    loop = tqdm.tqdm(os.listdir(path))
-    for file in loop:
-        image = np.array(PIL.Image.open(path + "/" + file))
-        size = image.shape
-
-        if len(size) == 3:  # cube
-            if first_cube:
-                all_cube = np.expand_dims(image, 0)  # cube image
-                first_cube = False
-            else:
-                img_exp = np.expand_dims(image, 0)
-                all_cube = np.concatenate((all_cube, img_exp))
-
-        else:  # silhouette
-            if first_sil:
-                all_sil = np.expand_dims(image, 0)
-                first_sil = False
-            else:
-                img_exp = np.expand_dims(image, 0)
-                all_sil = np.concatenate((all_sil, img_exp))
-
-        imcount = imcount + 1
-
-    np.save('cubes.npy', all_cube)
-    np.save('Silhouettes.npy', all_sil)
-    return imcount
-
-
+# function used to render 1 image given a object name and the translation/rotation parameter ------------------------
 def render_1_image(Obj_Name, params):
 
     print("creation of a single image")

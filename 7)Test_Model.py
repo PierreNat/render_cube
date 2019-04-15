@@ -1,6 +1,7 @@
 
 """
-test Resnet 50
+model that tests test images with the resnet 50 model with pretrained parameters loaded (from script 6)CNN_resnet)
+plot ground truth images vs estimated parameter rendering
 
 """
 import torch
@@ -303,7 +304,7 @@ test_losses, count, parameters, predicted_params = test(model, test_dataloader, 
 from utils import render_1_image
 obj_name = 'Large_dice'
 
-nb_im = 10
+nb_im = 15
 for i in range(nb_im):
     print('computed parameter_{}: '.format(i+1))
     print(predicted_params[i])

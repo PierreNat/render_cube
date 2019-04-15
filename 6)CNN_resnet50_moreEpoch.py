@@ -1,6 +1,9 @@
 
 """
-Cube test Resnet 50
+script to train a resnet 50 network only with n epoch
+training was made first with rendered image only with translation motion
+it aims to assess if more epoch will make the model better and how it will overfit
+the model parameters were saved and it was then tested with the script 7)Test_model with some test data
 
 """
 import torch
