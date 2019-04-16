@@ -368,15 +368,16 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
             predicted_params = model(image)  # run prediction; output <- vector with probabilities of each class
 
 
-            # zero the parameter gradients
-            optimizer.zero_grad()
+
+            optimizer.zero_grad()  # clears x.grad for every parameter x in the optimizer.
 
             # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
 
             loss = loss_function(predicted_params, parameter) #MSE  value ?
 
-            loss.backward()
-            optimizer.step()
+            loss.backward() # computes dloss/dx for every parameter x which has requires_grad=True
+            optimizer.step() # updates the value of x using the gradient x.grad. For example,
+                             # the SGD optimizer performs: x += -lr * x.grad
 
             parameters.extend(parameter.cpu().numpy())  # append ground truth label
             losses.append(loss.item())  # batch length is append every time

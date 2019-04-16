@@ -80,13 +80,13 @@ def get_param_t():  # only translation
     y = round(uniform(-constraint_y, constraint_y), 1)
     z = round( uniform(-15, -5), 1)
 
-    # alpha = round(uniform(-constraint_angle, constraint_angle), 1)
-    # beta = round(uniform(-constraint_angle, constraint_angle), 1)
-    # gamma = round(uniform(-constraint_angle, constraint_angle), 1)
+    alpha = round(uniform(-constraint_angle, constraint_angle), 1)
+    beta = round(uniform(-constraint_angle, constraint_angle), 1)
+    gamma = round(uniform(-constraint_angle, constraint_angle), 1)
 
-    alpha = 0
-    beta = 0
-    gamma = 0
+    # alpha = 0
+    # beta = 0
+    # gamma = 0
 
     return alpha, beta, gamma, x, y, z
 # ---------------------------------------------------------------------------------
@@ -218,9 +218,9 @@ def creation_database(Obj_Name, nb_im=10000):
         # first_param = save_pny(filename, first_param, Rt.astype(np.float16))
 
     #save database
-    np.save('data/test/cubes.npy', cubes_database)
-    np.save('data/test/sils.npy', sils_database)
-    np.save('data/test/params.npy', params_database)
+    np.save('data/test/cubesRt.npy', cubes_database)
+    np.save('data/test/silsRt.npy', sils_database)
+    np.save('data/test/paramsRt.npy', params_database)
 
 # append element ---------------------------------------
 # in: a list of all element
