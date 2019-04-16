@@ -54,13 +54,13 @@ def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
 def get_paramR_t():  # translation and rotation
 
     constraint_x = 2.5
-    constraint_y   = 2.5
+    constraint_y = 2.5
 
     constraint_angle = 180
 
     x = round(uniform(-constraint_x, constraint_x), 1)
     y = round(uniform(-constraint_y, constraint_y), 1)
-    z =round( uniform(-15, -5), 1)
+    z = round( uniform(-15, -5), 1)
 
     alpha = round(uniform(-constraint_angle,constraint_angle), 0)
     beta = round(uniform(-constraint_angle,constraint_angle), 0)
@@ -71,22 +71,22 @@ def get_paramR_t():  # translation and rotation
 def get_param_t():  # only translation
 
     constraint_x = 2.5
-    constraint_y   = 2.5
+    constraint_y = 2.5
 
     constraint_angle = 180
 
-    #draw random value of R and t in a specific span
+    # draw random value of R and t in a specific span
     x = round(uniform(-constraint_x, constraint_x), 1)
     y = round(uniform(-constraint_y, constraint_y), 1)
     z = round( uniform(-15, -5), 1)
 
-    alpha = round(uniform(-constraint_angle, constraint_angle), 1)
-    beta = round(uniform(-constraint_angle, constraint_angle), 1)
-    gamma = round(uniform(-constraint_angle, constraint_angle), 1)
+    # alpha = round(uniform(-constraint_angle, constraint_angle), 1)
+    # beta = round(uniform(-constraint_angle, constraint_angle), 1)
+    # gamma = round(uniform(-constraint_angle, constraint_angle), 1)
 
-    # alpha = 0
-    # beta = 0
-    # gamma = 0
+    alpha = 0
+    beta = 0
+    gamma = 0
 
     return alpha, beta, gamma, x, y, z
 # ---------------------------------------------------------------------------------
@@ -168,7 +168,7 @@ def creation_database(Obj_Name, nb_im=10000):
                                 dtype=torch.float32).cuda()
 
         # define extrinsic parameter
-        alpha, beta, gamma, x, y, z = get_param_t()  # define transformation parameter
+        alpha, beta, gamma, x, y, z = get_paramR_t()  # define transformation parameter
 
         R = np.array([alpha, beta, gamma])  # angle in degree param have to change
         t = np.array([x, y, z])  # translation in meter
@@ -225,6 +225,8 @@ def creation_database(Obj_Name, nb_im=10000):
 # append element ---------------------------------------
 # in: a list of all element
 # in: boolean to see if we are writing the first elelemnt, othewise append to the existing list
+
+
 def appendElement(all_elem, elem, first):
 
     if first:
@@ -269,7 +271,7 @@ def render_1_image(Obj_Name, params):
     y = params[4]
     z = params[5]
 
-    R = np.array([alpha, beta, gamma])  # angle in degree param have to change
+    R = np.array([alpha, beta, gamma])  # rotation angle in degree param have to change
     t = np.array([x, y, z])  # translation in meter
 
 
