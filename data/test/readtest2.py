@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 fig=plt.figure()
-num = 0
-cube = np.load('cubes.npy')
-sil = np.load('sils.npy')
-param = np.load('params.npy')
+num = 110
+cube = np.load('cubesRt.npy')
+sil = np.load('silsRt.npy')
+param = np.load('paramsRt.npy')
 torch_cube = torch.from_numpy(cube) 
 img = cube[num]
 img2 = sil[num]

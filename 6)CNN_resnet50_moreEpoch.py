@@ -15,9 +15,9 @@ device = torch.device('cpu')
 # print(device)
 
 
-cubes_file = './data/test/cubes.npy'
-silhouettes_file = './data/test/sils.npy'
-parameters_file = './data/test/params.npy'
+cubes_file = './data/test/cubesRt.npy'
+silhouettes_file = './data/test/silsRt.npy'
+parameters_file = './data/test/paramsRt.npy'
 
 target_size = (512, 512)
 
@@ -419,6 +419,8 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
 
             print('run: {} MSE val loss: {:.4f}'.format(count2 + 1, av_loss))
         val_epoch_losses.append(np.mean(np.array(losses))) #global losses array on the way
+
+
 
     return train_epoch_losses, val_epoch_losses, count, count2
 

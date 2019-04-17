@@ -218,9 +218,9 @@ def creation_database(Obj_Name, nb_im=10000):
         # first_param = save_pny(filename, first_param, Rt.astype(np.float16))
 
     #save database
-    np.save('data/test/cubesRt.npy', cubes_database)
-    np.save('data/test/silsRt.npy', sils_database)
-    np.save('data/test/paramsRt.npy', params_database)
+    np.save('data/test/cubesRt2.npy', cubes_database)
+    np.save('data/test/silsRt2.npy', sils_database)
+    np.save('data/test/paramsRt2.npy', params_database)
 
 # append element ---------------------------------------
 # in: a list of all element
