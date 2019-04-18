@@ -66,7 +66,7 @@ def get_param_R_t():  # translation and rotation
     beta = round(uniform(-constraint_angle,constraint_angle), 0)
     gamma = round(uniform(-constraint_angle,constraint_angle), 0)
 
-    return alpha, beta, gamma, x, y, z
+    return m.radians(alpha), m.radians(beta), m.radians(gamma), x, y, z
 
 
 def get_param_t():  # only translation
@@ -86,7 +86,7 @@ def get_param_t():  # only translation
     beta = 0
     gamma = 0
 
-    return alpha, beta, gamma, x, y, z
+    return m.radians(alpha), m.radians(beta), m.radians(gamma), x, y, z
 
 
 def get_param_R():  # only rotation
@@ -102,8 +102,9 @@ def get_param_R():  # only rotation
     beta = round(uniform(-constraint_angle, constraint_angle), 1)
     gamma = round(uniform(-constraint_angle, constraint_angle), 1)
 
+    return m.radians(alpha), m.radians(beta), m.radians(gamma), x, y, z
 
-    return alpha, beta, gamma, x, y, z
+
 # ---------------------------------------------------------------------------------
 # definition of the class camera with intrinsic and extrinsic parameter
 # ---------------------------------------------------------------------------------
@@ -137,8 +138,8 @@ class camera_setttings():
         self.tx = t[0]
         self.ty= t[1]
         self.tz=t[2]
-        # degree to radian conversion and store
-        self.t_mat, self.R_mat = AxisBlend2Rend(self.tx, self.ty, self.tz, m.radians(self.alpha), m.radians(self.beta), m.radians(self.gamma))
+        # angle in radian
+        self.t_mat, self.R_mat = AxisBlend2Rend(self.tx, self.ty, self.tz, self.alpha, self.beta, self.gamma)
 
         self.K_vertices = np.repeat(camera_setttings.K[np.newaxis, :, :], vert, axis=0)
         self.R_vertices = np.repeat(self.R_mat[np.newaxis, :, :], vert, axis=0)
@@ -185,14 +186,14 @@ def creation_database(Obj_Name, file_name_extension, nb_im=10000):
 
 # ------define extrinsic parameter--------------------------------------------------------------------
 
-        alpha, beta, gamma, x, y, z = get_param_R()  # define transformation parameter
+        alpha, beta, gamma, x, y, z = get_param_R()  # define transformation parameter, alpha beta gamma in radian
 
 # ----------------------------------------------------------------------------------------------------
 
-        R = np.array([alpha, beta, gamma])  # angle in degree param have to change
+        R = np.array([alpha, beta, gamma])  # angle in degree
         t = np.array([x, y, z])  # translation in meter
 
-        Rt = np.concatenate((R, t), axis=None) # create one array of parameter in DEGREE, this arraz will be saved in .npy file
+        Rt = np.concatenate((R, t), axis=None) # create one array of parameter in radian, this arraz will be saved in .npy file
 
         # create camera with given parameters
         cam = camera_setttings(R=R, t=t, vert=nb_vertices) # degree angle will be converted  and stored in radian

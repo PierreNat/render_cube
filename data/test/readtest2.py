@@ -7,9 +7,10 @@ Created on Mon Apr  1 14:23:31 2019
 """
 import matplotlib.pyplot as plt
 import numpy as np
+import math as m
 import torch
 fig=plt.figure()
-num = 0
+num = 6
 cube = np.load('cubesR_test.npy')
 sil = np.load('silsR_test.npy')
 param = np.load('paramsR_test.npy')
@@ -17,6 +18,10 @@ torch_cube = torch.from_numpy(cube)
 img = cube[num]
 img2 = sil[num]
 prm = param[num]
+prm[0] = m.degrees(prm[0])
+prm[1] = m.degrees(prm[1])
+prm[2] = m.degrees(prm[2])
+print(prm)
 #img2 = np.squeeze(img2)
 fig.add_subplot(1, 3, 1)
 plt.imshow(img)
@@ -27,7 +32,7 @@ plt.show()
 x = np.array((1,2,3))
 y = np.array((4,5,6))
 xy = np.concatenate((x, y), axis=None)
-print(prm)
+
 
 #    np.savez('cubes.npz','cubes.npy')
 #try to direct append

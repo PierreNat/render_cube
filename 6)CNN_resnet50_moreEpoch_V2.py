@@ -3,6 +3,7 @@
 script to train a resnet 50 network only with n epoch
 Version 2
 implementation of log txt
+angle in radian
 
 """
 import torch
