@@ -24,9 +24,9 @@ print(device)
 def main():
 
     obj_name = 'Large_dice'
-    file_name_extension = 'R_test'
+    file_name_extension = 'R_1000set'
 
-    nb_im = 10
+    nb_im = 1000
 
     creation_database(obj_name, file_name_extension,  nb_im)  # create the dataset
 

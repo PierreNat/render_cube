@@ -56,7 +56,7 @@ def get_param_R_t():  # translation and rotation
     constraint_x = 2.5
     constraint_y = 2.5
 
-    constraint_angle = 180
+    constraint_angle = m.pi
 
     x = round(uniform(-constraint_x, constraint_x), 1)
     y = round(uniform(-constraint_y, constraint_y), 1)
@@ -66,7 +66,7 @@ def get_param_R_t():  # translation and rotation
     beta = round(uniform(-constraint_angle,constraint_angle), 0)
     gamma = round(uniform(-constraint_angle,constraint_angle), 0)
 
-    return m.radians(alpha), m.radians(beta), m.radians(gamma), x, y, z
+    return alpha, beta, gamma, x, y, z
 
 
 def get_param_t():  # only translation
@@ -74,7 +74,6 @@ def get_param_t():  # only translation
     constraint_x = 2.5
     constraint_y = 2.5
 
-    constraint_angle = 180
 
     # draw random value of R and t in a specific span
     x = round(uniform(-constraint_x, constraint_x), 1)
@@ -86,12 +85,12 @@ def get_param_t():  # only translation
     beta = 0
     gamma = 0
 
-    return m.radians(alpha), m.radians(beta), m.radians(gamma), x, y, z
+    return alpha, beta, gamma, x, y, z
 
 
 def get_param_R():  # only rotation
 
-    constraint_angle = 180
+    constraint_angle = m.pi
 
     # draw random value of R and t in a specific span
     x = 0
@@ -102,7 +101,7 @@ def get_param_R():  # only rotation
     beta = round(uniform(-constraint_angle, constraint_angle), 1)
     gamma = round(uniform(-constraint_angle, constraint_angle), 1)
 
-    return m.radians(alpha), m.radians(beta), m.radians(gamma), x, y, z
+    return alpha, beta, gamma, x, y, z
 
 
 # ---------------------------------------------------------------------------------
@@ -193,7 +192,7 @@ def creation_database(Obj_Name, file_name_extension, nb_im=10000):
         R = np.array([alpha, beta, gamma])  # angle in degree
         t = np.array([x, y, z])  # translation in meter
 
-        Rt = np.concatenate((R, t), axis=None) # create one array of parameter in radian, this arraz will be saved in .npy file
+        Rt = np.concatenate((R, t), axis=None)  # create one array of parameter in radian, this arraz will be saved in .npy file
 
         # create camera with given parameters
         cam = camera_setttings(R=R, t=t, vert=nb_vertices) # degree angle will be converted  and stored in radian
