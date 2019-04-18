@@ -158,11 +158,11 @@ def creation_database(Obj_Name, file_name_extension, nb_im=10000):
     cubes_database = 0
     sils_database = 0
     params_database = 0
-    loop = tqdm.tqdm(range(0, nb_im))
-    for i in loop:
+    for i in range(0, nb_im):
         # loop.set_description('render png {}'.format(i))
         # create path
         current_dir = os.path.dirname(os.path.realpath(__file__))
+        print('creation of image {}/{}'.format(i, nb_im))
         data_dir = os.path.join(current_dir, 'data')
         train_dir = os.path.join(current_dir, 'data/test')
         parser = argparse.ArgumentParser()

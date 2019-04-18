@@ -16,7 +16,7 @@ from math import pi
 from utils import creation_database
 
 
-
+# device = torch.device('cpu')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
@@ -24,9 +24,9 @@ print(device)
 def main():
 
     obj_name = 'Large_dice'
-    file_name_extension = 'R_1000set'
+    file_name_extension = 'R_10set'
 
-    nb_im = 1000
+    nb_im = 10
 
     creation_database(obj_name, file_name_extension,  nb_im)  # create the dataset
 

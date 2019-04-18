@@ -15,9 +15,9 @@ device = torch.device('cpu')
 # print(device)
 
 
-cubes_file = './data/test/cubesRt.npy'
-silhouettes_file = './data/test/silsRt.npy'
-parameters_file = './data/test/paramsRt.npy'
+cubes_file = './data/test/cubesR_1000set.npy'
+silhouettes_file = './data/test/silsR_1000set.npy'
+parameters_file = './data/test/paramsR_1000set.npy'
 
 target_size = (512, 512)
 
