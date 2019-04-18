@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 fig=plt.figure()
-num = 110
-cube = np.load('cubesRt.npy')
-sil = np.load('silsRt.npy')
-param = np.load('paramsRt.npy')
+num = 0
+cube = np.load('cubesR_test.npy')
+sil = np.load('silsR_test.npy')
+param = np.load('paramsR_test.npy')
 torch_cube = torch.from_numpy(cube) 
 img = cube[num]
 img2 = sil[num]
@@ -27,6 +27,7 @@ plt.show()
 x = np.array((1,2,3))
 y = np.array((4,5,6))
 xy = np.concatenate((x, y), axis=None)
+print(prm)
 
 #    np.savez('cubes.npz','cubes.npy')
 #try to direct append

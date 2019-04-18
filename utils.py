@@ -51,7 +51,7 @@ def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
 # ---------------------------------------------------------------------------------
 
 
-def get_paramR_t():  # translation and rotation
+def get_param_R_t():  # translation and rotation
 
     constraint_x = 2.5
     constraint_y = 2.5
@@ -65,6 +65,7 @@ def get_paramR_t():  # translation and rotation
     alpha = round(uniform(-constraint_angle,constraint_angle), 0)
     beta = round(uniform(-constraint_angle,constraint_angle), 0)
     gamma = round(uniform(-constraint_angle,constraint_angle), 0)
+
     return alpha, beta, gamma, x, y, z
 
 
@@ -80,9 +81,6 @@ def get_param_t():  # only translation
     y = round(uniform(-constraint_y, constraint_y), 1)
     z = round( uniform(-15, -5), 1)
 
-    # alpha = round(uniform(-constraint_angle, constraint_angle), 1)
-    # beta = round(uniform(-constraint_angle, constraint_angle), 1)
-    # gamma = round(uniform(-constraint_angle, constraint_angle), 1)
 
     alpha = 0
     beta = 0
@@ -98,7 +96,7 @@ def get_param_R():  # only rotation
     # draw random value of R and t in a specific span
     x = 0
     y = 0
-    z = 0
+    z = round( uniform(-15, -5), 1) # need to see the entire cube (if set to 0 we are inside it)
 
     alpha = round(uniform(-constraint_angle, constraint_angle), 1)
     beta = round(uniform(-constraint_angle, constraint_angle), 1)
@@ -125,7 +123,7 @@ class camera_setttings():
     Cam_centerX = resolutionX / 2
     Cam_centerY = resolutionY / 2
 
-    K  = np.array([[f/pix_sizeX,0,Cam_centerX],
+    K = np.array([[f/pix_sizeX,0,Cam_centerX],
                   [0,f/pix_sizeY,Cam_centerY],
                   [0,0,1]])  # shape of [nb_vertice, 3, 3]
 
@@ -139,6 +137,7 @@ class camera_setttings():
         self.tx = t[0]
         self.ty= t[1]
         self.tz=t[2]
+        # degree to radian conversion and store
         self.t_mat, self.R_mat = AxisBlend2Rend(self.tx, self.ty, self.tz, m.radians(self.alpha), m.radians(self.beta), m.radians(self.gamma))
 
         self.K_vertices = np.repeat(camera_setttings.K[np.newaxis, :, :], vert, axis=0)
@@ -151,7 +150,7 @@ class camera_setttings():
 # in: number of images do produce
 
 
-def creation_database(Obj_Name, nb_im=10000):
+def creation_database(Obj_Name, file_name_extension, nb_im=10000):
     print("creation of 2 x %d images" % nb_im)
     first_im = True
     first_sil = True
@@ -184,16 +183,19 @@ def creation_database(Obj_Name, nb_im=10000):
         textures_1 = torch.ones(1, faces_1.shape[1], texture_size, texture_size, texture_size, 3,
                                 dtype=torch.float32).cuda()
 
-        # define extrinsic parameter
-        alpha, beta, gamma, x, y, z = get_paramR_t()  # define transformation parameter
+# ------define extrinsic parameter--------------------------------------------------------------------
+
+        alpha, beta, gamma, x, y, z = get_param_R()  # define transformation parameter
+
+# ----------------------------------------------------------------------------------------------------
 
         R = np.array([alpha, beta, gamma])  # angle in degree param have to change
         t = np.array([x, y, z])  # translation in meter
 
-        Rt =  np.concatenate((R, t), axis=None) # create one array of parameter
+        Rt = np.concatenate((R, t), axis=None) # create one array of parameter in DEGREE, this arraz will be saved in .npy file
 
         # create camera with given parameters
-        cam = camera_setttings(R=R, t=t, vert=nb_vertices)
+        cam = camera_setttings(R=R, t=t, vert=nb_vertices) # degree angle will be converted  and stored in radian
 
         # create the renderer
         renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
@@ -230,14 +232,14 @@ def creation_database(Obj_Name, nb_im=10000):
 
         # writer.close()
 
-
         params_database, first_param = appendElement(all_elem=params_database, elem=Rt.astype(np.float16), first=first_param)
         # first_param = save_pny(filename, first_param, Rt.astype(np.float16))
 
     #save database
-    np.save('data/test/cubesR.npy', cubes_database)
-    np.save('data/test/silsR.npy', sils_database)
-    np.save('data/test/paramsR.npy', params_database)
+    np.save('data/test/cubes{}.npy'.format(file_name_extension), cubes_database)
+    np.save('data/test/sils{}.npy'.format(file_name_extension), sils_database)
+    np.save('data/test/params{}.npy'.format(file_name_extension), params_database)
+    print('cubes, silhouettes and parameters successfully saved in .npy file with extension: {}'.format(file_name_extension))
 
 # append element ---------------------------------------
 # in: a list of all element
