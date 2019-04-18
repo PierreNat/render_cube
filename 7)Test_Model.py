@@ -17,9 +17,9 @@ device = torch.device('cpu')
 # print(device)
 
 
-cubes_file = './data/test/cubes.npy'
-silhouettes_file = './data/test/sils.npy'
-parameters_file = './data/test/params.npy'
+cubes_file = './data/test/cubesRt.npy'
+silhouettes_file = './data/test/silsRt.npy'
+parameters_file = './data/test/paramsRt.npy'
 
 target_size = (512, 512)
 
@@ -248,7 +248,7 @@ def resnet50(pretrained=True, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         print('using own pre-trained model')
-        model.load_state_dict(torch.load('./model_train_nepoch.pth'))
+        model.load_state_dict(torch.load('./model_train_nepochRt.pth'))
         model.eval()
         print('download finished')
     return model

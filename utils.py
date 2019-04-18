@@ -89,6 +89,23 @@ def get_param_t():  # only translation
     gamma = 0
 
     return alpha, beta, gamma, x, y, z
+
+
+def get_param_R():  # only rotation
+
+    constraint_angle = 180
+
+    # draw random value of R and t in a specific span
+    x = 0
+    y = 0
+    z = 0
+
+    alpha = round(uniform(-constraint_angle, constraint_angle), 1)
+    beta = round(uniform(-constraint_angle, constraint_angle), 1)
+    gamma = round(uniform(-constraint_angle, constraint_angle), 1)
+
+
+    return alpha, beta, gamma, x, y, z
 # ---------------------------------------------------------------------------------
 # definition of the class camera with intrinsic and extrinsic parameter
 # ---------------------------------------------------------------------------------
@@ -218,9 +235,9 @@ def creation_database(Obj_Name, nb_im=10000):
         # first_param = save_pny(filename, first_param, Rt.astype(np.float16))
 
     #save database
-    np.save('data/test/cubesRt2.npy', cubes_database)
-    np.save('data/test/silsRt2.npy', sils_database)
-    np.save('data/test/paramsRt2.npy', params_database)
+    np.save('data/test/cubesR.npy', cubes_database)
+    np.save('data/test/silsR.npy', sils_database)
+    np.save('data/test/paramsR.npy', params_database)
 
 # append element ---------------------------------------
 # in: a list of all element

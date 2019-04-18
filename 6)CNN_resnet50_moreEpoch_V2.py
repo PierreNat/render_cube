@@ -283,12 +283,15 @@ def resnet50(pretrained=True, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         print('using pre-trained model')
-        pretrained_state = model_zoo.load_url(model_urls['resnet50'])
-        model_state = model.state_dict()
-        pretrained_state = {k: v for k, v in pretrained_state.items() if
-                            k in model_state and v.size() == model_state[k].size()}
-        model_state.update(pretrained_state)
-        model.load_state_dict(model_state)
+
+        model.load_state_dict(torch.load('./model_train_nepoch.pth'))
+        model.eval()
+        # pretrained_state = model_zoo.load_url(model_urls['resnet50'])
+        # model_state = model.state_dict()
+        # pretrained_state = {k: v for k, v in pretrained_state.items() if
+        #                     k in model_state and v.size() == model_state[k].size()}
+        # model_state.update(pretrained_state)
+        # model.load_state_dict(model_state)
 
         print('download finished')
     return model
@@ -314,7 +317,7 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
     val_losses = []
     val_epoch_losses = []
 
-    f = open("result/train_result.txt", "w+")
+    f = open("result/trainRt_result.txt", "w+")
 
     for epoch in range(n_epochs):
         print('run epoch: {} '.format(epoch))
@@ -346,7 +349,6 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
             parameters.extend(parameter.cpu().numpy())  # append ground truth label
             losses.append(loss.item())  # batch length is append every time
 
-
             av_loss = np.mean(np.array(losses))
             train_losses.append(av_loss)  # global losses array on the way
             print('run: {}/{} MSE train loss: {:.4f}'.format(count, len(loop), av_loss))
@@ -367,7 +369,6 @@ def train(model, train_dataloader, val_dataloader, optimizer, n_epochs, loss_fun
             image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
             silhouette = silhouette.to(device)
             predicted_params = model(image)  # run prediction; output <- vector with probabilities of each class
-
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -402,7 +403,7 @@ train_losses, val_losses, count, count2 = train(model, train_dataloader, val_dat
 
 #  ------------------------------------------------------------------
 
-torch.save(model.state_dict(), './model_train_nepoch2.pth')
+torch.save(model.state_dict(), './model_train_nepochRt2.pth')
 print('parameters saved')
 #  ------------------------------------------------------------------
 
@@ -423,7 +424,7 @@ plot(n_epochs, train_losses)
 #  ------------------------------------------------------------------
 
 
-def plot(n_epochs, val_losses):
+def plot(count, val_losses):
     plt.figure()
     plt.plot(np.arange(count), val_losses) #display evenly scale with arange
     # plt.plot(np.arange(n_epochs), val_losses)

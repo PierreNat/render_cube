@@ -16,6 +16,7 @@ param = np.load('paramsRt.npy')
 torch_cube = torch.from_numpy(cube) 
 img = cube[num]
 img2 = sil[num]
+prm = param[num]
 #img2 = np.squeeze(img2)
 fig.add_subplot(1, 3, 1)
 plt.imshow(img)
@@ -27,7 +28,7 @@ x = np.array((1,2,3))
 y = np.array((4,5,6))
 xy = np.concatenate((x, y), axis=None)
 
-np.savez('cubes.npz','cubes.npy')
+#    np.savez('cubes.npz','cubes.npy')
 #try to direct append
 
 #
