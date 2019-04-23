@@ -11,15 +11,19 @@ import tqdm
 import utils
 import matplotlib.pyplot as plt
 
-device = torch.device('cpu')
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# torch.cuda.empty_cache()
-# print(device)
+# device = torch.device('cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+torch.cuda.empty_cache()
+print(device)
 
 
-cubes_file = './data/test/cubesR_1000set.npy'
-silhouettes_file = './data/test/silsR_1000set.npy'
-parameters_file = './data/test/paramsR_1000set.npy'
+cubeSetName = 'cubesR_10000set'
+silSetName = 'silsR_10000set'
+paramSetName = 'paramsR_10000set'
+
+cubes_file = './data/test/{}.npy'.format(cubeSetName)
+silhouettes_file = './data/test/{}.npy'.format(silSetName)
+parameters_file = './data/test/{}.npy'.format(paramSetName)
 
 target_size = (512, 512)
 
@@ -28,7 +32,8 @@ sils = np.load(silhouettes_file)
 params = np.load(parameters_file)
 
 #  ------------------------------------------------------------------
-test_length = 1000
+test_length = 100
+batch_size = 6
 
 test_im = cubes[:test_length]
 test_sil = sils[:test_length]
@@ -69,7 +74,7 @@ transforms = Compose([ToTensor()])
 
 test_dataset = CubeDataset(test_im, test_sil, test_param, transforms)
 
-test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=2)
+test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
 
 #  ------------------------------------------------------------------
 
@@ -248,7 +253,7 @@ def resnet50(pretrained=True, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         print('using own pre-trained model')
-        model.load_state_dict(torch.load('./model_train_nepochRt2.pth'))
+        model.load_state_dict(torch.load('models/042319_TempModel_train_cubesR_10000set_6_batchs_epochs_n4.pth'))
         model.eval()
         print('download finished')
     return model
@@ -273,6 +278,8 @@ def test(model, test_dataloader, loss_function):
     losses = []  # running loss
     count2 = 0
     f = open("result/Test_result.txt", "w+")
+    g = open("result/Test_result_save_param.txt", "w+")
+    g.write('alpha alphaGT beta  betaGT gamma gammaGT x xGT yGT zGT \r\n')
 
     loop = tqdm.tqdm(test_dataloader)
     for image, silhouette, parameter in loop:
@@ -283,18 +290,28 @@ def test(model, test_dataloader, loss_function):
 
         loss = loss_function(predicted_param, parameter) #MSE  value ?
 
-        parameters.extend(parameter.detach().cpu().numpy())  # append ground truth parameters
+        parameters.extend(parameter.detach().cpu().numpy())  # append ground truth parameters [array([...], dtype=float32), [...], dtype=float32),...)]
         predicted_params.extend(predicted_param.detach().cpu().numpy()) # append computed parameters
         losses.append(loss.item())  # running loss
+
+        #store value GT(ground truth) and predicted param
+        for i in range(0,batch_size):
+            for j in range(0,6):
+                estim = predicted_params[i][j]
+                gt = parameters[i][j]
+                g.write('{:.4f} {:.4f} '.format(estim, gt))
+            g.write('\r\n')
 
         av_loss = np.mean(np.array(losses))
         test_losses.append(av_loss)  # global losses array on the way
 
         print('run: {}/{} MSE test loss: {:.4f}\r\n'.format(count2, len(loop), av_loss))
         f.write('run: {}/{}  MSE test loss: {:.4f}\r\n'.format(count2, len(loop),av_loss))
+
         count2 = count2 + 1
 
     f.close()
+    g.close()
 
     return test_losses, count2, parameters, predicted_params
 
@@ -309,7 +326,7 @@ test_losses, count, parameters, predicted_params = test(model, test_dataloader, 
 from utils import render_1_image
 obj_name = 'Large_dice'
 
-nb_im = 5
+nb_im = 6
 for i in range(nb_im):
     print('computed parameter_{}: '.format(i+1))
     print(predicted_params[i])

@@ -17,11 +17,12 @@ cubeSetName = 'cubesR_10000set'
 silSetName = 'silsR_10000set'
 paramSetName = 'paramsR_10000set'
 
+
 date4File = '042319' #mmddyy
 
-fileExtension = 'test'
+fileExtension = 'Rt_test'
 
-batch_size = 12
+batch_size = 6
 
 n_epochs = 20
 
@@ -330,6 +331,7 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
     train_epoch_losses = []
     val_losses = []
     val_epoch_losses = []
+    predicted_params = []
 
     f = open("result/{}_{}_{}_batchs_{}_epochs_{}.txt".format(date4File, cubeSetName, str(batch_size), str(n_epochs), fileExtension), "w+")
 

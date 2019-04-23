@@ -18,9 +18,7 @@ torch_cube = torch.from_numpy(cube)
 img = cube[num]
 img2 = sil[num]
 prm = param[num]
-prm[0] = m.degrees(prm[0])
-prm[1] = m.degrees(prm[1])
-prm[2] = m.degrees(prm[2])
+
 print(prm)
 #img2 = np.squeeze(img2)
 fig.add_subplot(1, 3, 1)
@@ -32,6 +30,10 @@ plt.show()
 x = np.array((1,2,3))
 y = np.array((4,5,6))
 xy = np.concatenate((x, y), axis=None)
+
+plt.hist(param[:,5], 100)
+print(np.min(param[:,0]))
+print(np.max(param[:,0]))
 
 
 #    np.savez('cubes.npz','cubes.npy')

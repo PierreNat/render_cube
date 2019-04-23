@@ -62,9 +62,9 @@ def get_param_R_t():  # translation and rotation
     y = round(uniform(-constraint_y, constraint_y), 1)
     z = round( uniform(-15, -5), 1)
 
-    alpha = round(uniform(-constraint_angle,constraint_angle), 0)
-    beta = round(uniform(-constraint_angle,constraint_angle), 0)
-    gamma = round(uniform(-constraint_angle,constraint_angle), 0)
+    alpha = round(uniform(-constraint_angle,constraint_angle), 1)
+    beta = round(uniform(-constraint_angle,constraint_angle), 1)
+    gamma = round(uniform(-constraint_angle,constraint_angle), 1)
 
     return alpha, beta, gamma, x, y, z
 
