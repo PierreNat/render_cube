@@ -458,34 +458,3 @@ torch.save(model.state_dict(), 'models/{}_FinalModel_train_{}_{}_batchs_{}_epoch
 print('parameters saved')
 
 #  ------------------------------------------------------------------
-#
-# import matplotlib.pyplot as plt
-#
-# def plot(count, train_losses):
-#     plt.figure()
-#     plt.plot(np.arange(count), train_losses) #display evenly scale with arange
-#     # plt.plot(np.arange(n_epochs), val_losses)
-#     plt.legend(['train_loss'])
-#     plt.xlabel('runs in dataloader')
-#     plt.ylabel('loss value')
-#     plt.title('Train loss')
-#
-#
-# plot(n_epochs, train_losses)
-#
-# #  ------------------------------------------------------------------
-#
-#
-# def plot(count, val_losses):
-#     plt.figure()
-#     plt.plot(np.arange(count), val_losses) #display evenly scale with arange
-#     # plt.plot(np.arange(n_epochs), val_losses)
-#     plt.legend(['train_loss'])
-#     plt.xlabel('runs in dataloader')
-#     plt.ylabel('loss value')
-#     plt.title('Train loss')
-#
-#
-# plot(count2, val_losses)
-#
-# #test set

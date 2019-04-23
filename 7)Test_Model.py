@@ -324,15 +324,18 @@ test_losses, count, parameters, predicted_params = test(model, test_dataloader, 
 # display computed parameter against ground truth
 
 from utils import render_1_image
+from numpy.random import uniform
 obj_name = 'Large_dice'
 
 nb_im = 6
 for i in range(nb_im):
+
+    randIm = int(round(uniform(0, test_length), 0))
     print('computed parameter_{}: '.format(i+1))
-    print(predicted_params[i])
+    print(predicted_params[randIm ])
     print('ground truth parameter_{}: '.format(i+1))
-    print(params[i])
-    im, sil = render_1_image(obj_name, predicted_params[i])  # create the dataset
+    print(params[randIm ])
+    im, sil = render_1_image(obj_name, predicted_params[randIm])  # create the dataset
 
     plt.subplot(2, nb_im, i+1)
     plt.imshow(test_im[i])
