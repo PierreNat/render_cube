@@ -10,7 +10,7 @@ import numpy as np
 import math as m
 import torch
 fig=plt.figure()
-num = 200
+num = 240
 cube = np.load('cubesR_10000set.npy')
 sil = np.load('silsR_10000set.npy')
 param = np.load('paramsR_10000set.npy')
