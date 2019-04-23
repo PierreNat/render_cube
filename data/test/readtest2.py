@@ -10,10 +10,10 @@ import numpy as np
 import math as m
 import torch
 fig=plt.figure()
-num = 4
-cube = np.load('cubesR_1000set.npy')
-sil = np.load('silsR_1000set.npy')
-param = np.load('paramsR_1000set.npy')
+num = 200
+cube = np.load('cubesR_10000set.npy')
+sil = np.load('silsR_10000set.npy')
+param = np.load('paramsR_10000set.npy')
 torch_cube = torch.from_numpy(cube) 
 img = cube[num]
 img2 = sil[num]
