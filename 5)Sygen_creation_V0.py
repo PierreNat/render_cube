@@ -26,7 +26,7 @@ def main():
     obj_name = 'Large_dice'
     file_name_extension = 'ambiant'
 
-    nb_im = 1
+    nb_im = 1000
     creation_database(obj_name, file_name_extension,  nb_im)  # create the dataset
 
 

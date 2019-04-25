@@ -16,11 +16,12 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-modelName = '042519_TempModel_train_cubesAlphaR_1000set_6_batchs_epochs_n39_AlphaRonly'
+modelName = '042519_TempModel_train_cubesrgb_test_6_batchs_epochs_n2_rgb_test'
 
-cubeSetName = 'cubesambiant'
-silSetName = 'silsambiant'
-paramSetName = 'paramsAlphaR_1000set'
+# cubesAlphaR_1000set
+cubeSetName = 'cubesrgb_test'
+silSetName = 'silsAlphaR_1000set'
+paramSetName = 'paramsrgb_test_param'
 
 cubes_file = './data/test/{}.npy'.format(cubeSetName)
 silhouettes_file = './data/test/{}.npy'.format(silSetName)
@@ -34,32 +35,35 @@ cubes = np.load(cubes_file)
 sils = np.load(silhouettes_file)
 params = np.load(parameters_file)
 
+
 #  ------------------------------------------------------------------
-test_length = 100
+test_length = 1000
 batch_size = 6
 
 test_im = cubes[:test_length]
 test_sil = sils[:test_length]
 test_param = params[:test_length]
 
+plt.imshow(test_im[5])
+plt.show()
 #  ------------------------------------------------------------------
 
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor, Compose
+from torchvision.transforms import ToTensor, Compose, Normalize, Lambda
 
 class CubeDataset(Dataset):
     # write your code
     def __init__(self, images, silhouettes, parameters, transform=None):
         self.images = images.astype(np.uint8)  # our image
         self.silhouettes = silhouettes.astype(np.uint8)  # our related parameter
-        self.parameters = parameters.astype(np.float16)
+        self.parameters = parameters.astype(np.float32)
         self.transform = transform
 
     def __getitem__(self, index):
         # Anything could go here, e.g. image loading from file or a different structure
         # must return image and center
-        sel_images = self.images[index]
+        sel_images = self.images[index].astype(np.float32) / 255
         sel_sils = self.silhouettes[index]
         sel_params = self.parameters[index]
 
@@ -67,17 +71,39 @@ class CubeDataset(Dataset):
             sel_images = self.transform(sel_images)
             sel_sils = self.transform(sel_sils)
 
-        return sel_images, sel_sils, torch.FloatTensor(sel_params)  # return all parameter in tensor form
+        return sel_images, sel_images, torch.FloatTensor(sel_params)  # return all parameter in tensor form
 
     def __len__(self):
         return len(self.images)  # return the length of the dataset
 #  ------------------------------------------------------------------
 
-transforms = Compose([ToTensor()])
+normalize = Normalize(mean=[0.5], std=[0.5])
+
+transforms = Compose([ ToTensor(),  normalize])
 
 test_dataset = CubeDataset(test_im, test_sil, test_param, transforms)
 
 test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
+
+
+#  ------------------------------------------------------------------
+
+
+for image, sil, param in test_dataloader:
+
+    # print(image[2])
+    print(image.size())
+    image2show = image[2]  # indexing random  one image
+    print(image2show)
+
+    # # tensor to numpy:
+    image2shownp = (image2show).numpy().reshape((512, 512, 3))  # reshape the torch format to numpy
+    print(image2shownp.shape)
+    #
+    plt.imshow(image2shownp)
+    plt.show()
+
+    break  # break here just to show 1 batch of data
 
 #  ------------------------------------------------------------------
 
@@ -290,6 +316,7 @@ def test(model, test_dataloader, loss_function):
         image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
         parameter = parameter.to(device)
         predicted_param = model(image)  # run prediction; output <- vector with probabilities of each class
+        # print(predicted_param)
 
         loss = loss_function(predicted_param, parameter) #MSE  value ?
 
@@ -326,22 +353,23 @@ test_losses, count, parameters, predicted_params = test(model, test_dataloader, 
 #  ------------------------------------------------------------------
 # display computed parameter against ground truth
 
-from utils import render_1_image
-from numpy.random import uniform
-obj_name = 'Large_dice'
+from utils import tom_render_1_image
 
-nb_im = 15
+obj_name = 'rubik_color'
+
+nb_im = 6
 loop = tqdm.tqdm(range(0,nb_im))
 for i in loop:
 
-    randIm = int(round(uniform(0,test_length), 0))
+    randIm = i
     print('computed parameter_{}: '.format(i+1))
     print(predicted_params[randIm])
     print('ground truth parameter_{}: '.format(i+1))
     print(params[randIm])
 
-    im, sil = render_1_image(obj_name, predicted_params[randIm])  # create the dataset
-
+    im = tom_render_1_image(obj_name, predicted_params[randIm])  # create the dataset
+    # print(im)
+    #
     plt.subplot(2, nb_im, i+1)
     plt.imshow(test_im[randIm])
 

@@ -16,9 +16,9 @@ data_dir = os.path.join(current_dir, 'data')
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, 'dice2.obj'))
-    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'rubik2_SyGen_lookat.png'))
+    parser = argparse.ArgumentParser().obj'))
+    parser.add_argument('-o', '--filename_output', type=str, default=os.path.join(data_dir, 'rubik
+    parser.add_argument('-i', '--filename_input', type=str, default=os.path.join(data_dir, 'dice22_SyGen_lookat.png'))
     parser.add_argument('-g', '--gpu', type=int, default=0)
     args = parser.parse_args()
 

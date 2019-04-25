@@ -50,7 +50,7 @@ def main():
  
     resolutionX = 512 #in pixel
     resolutionY = 512
-    scale = 0.5
+    scale = 1
     f = 35 #focal on lens 
     sensor_width = 32 # in mm given in blender , camera sensor type
     pixels_in_u_per_mm = (resolutionX*scale)/sensor_width
@@ -85,7 +85,7 @@ def main():
 
     R = np.repeat(R[np.newaxis, :, :], batch, axis=0) # shape of [batch=1, 3, 3]
     t = np.repeat(t[np.newaxis, :], 1, axis=0)# shape of [1, 3]
-#    t = np.repeat(t[np.newaxis, :, :], batch, axis=0) # shape of [batch=1, 1, 3]
+
 
     
 #---------------------------------------------------------------------------------    

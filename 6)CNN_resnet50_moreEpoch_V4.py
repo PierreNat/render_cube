@@ -13,9 +13,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-cubeSetName = 'cubesAlphaR_1000set'
+cubeSetName = 'cubesrgb_test'
 silSetName = 'silsAlphaR_1000set'
-paramSetName = 'paramsAlphaR_1000set'
+paramSetName = 'paramsrgb_test_param'
 
 # cubeSetName = 'cubesRt'
 # silSetName = 'silsRt'
@@ -23,11 +23,11 @@ paramSetName = 'paramsAlphaR_1000set'
 
 date4File = '042519' #mmddyy
 
-fileExtension = 'AlphaRonly2'
+fileExtension = 'rgb_test'
 
 batch_size = 6
 
-n_epochs = 40
+n_epochs = 20
 
 target_size = (512, 512)
 
