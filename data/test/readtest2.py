@@ -10,10 +10,10 @@ import numpy as np
 import math as m
 import torch
 fig=plt.figure()
-num = 240
-cube = np.load('cubesR_10000set.npy')
-sil = np.load('silsR_10000set.npy')
-param = np.load('paramsR_10000set.npy')
+num = 0
+cube = np.load('cubesambiant.npy')
+sil = np.load('silsambiant.npy')
+param = np.load('paramsambiant.npy')
 torch_cube = torch.from_numpy(cube) 
 img = cube[num]
 img2 = sil[num]
@@ -31,7 +31,7 @@ x = np.array((1,2,3))
 y = np.array((4,5,6))
 xy = np.concatenate((x, y), axis=None)
 
-plt.hist(param[:,5], 100)
+plt.hist(param[:,1], 100)
 print(np.min(param[:,0]))
 print(np.max(param[:,0]))
 

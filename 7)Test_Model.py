@@ -1,6 +1,6 @@
 
 """
-model that tests test images with the resnet 50 model with pretrained parameters loaded (from script 6)CNN_resnet)
+model that tests test images with the resnet 50 model with pretrained parameters loaded from models directory
 plot ground truth images vs estimated parameter rendering
 
 """
@@ -16,16 +16,19 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
+modelName = '042519_TempModel_train_cubesAlphaR_1000set_6_batchs_epochs_n39_AlphaRonly'
 
-cubeSetName = 'cubesR_10000set'
-silSetName = 'silsR_10000set'
-paramSetName = 'paramsR_10000set'
+cubeSetName = 'cubesambiant'
+silSetName = 'silsambiant'
+paramSetName = 'paramsAlphaR_1000set'
 
 cubes_file = './data/test/{}.npy'.format(cubeSetName)
 silhouettes_file = './data/test/{}.npy'.format(silSetName)
 parameters_file = './data/test/{}.npy'.format(paramSetName)
 
 target_size = (512, 512)
+
+
 
 cubes = np.load(cubes_file)
 sils = np.load(silhouettes_file)
@@ -253,7 +256,7 @@ def resnet50(pretrained=True, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         print('using own pre-trained model')
-        model.load_state_dict(torch.load('models/042319_TempModel_train_cubesR_10000set_6_batchs_epochs_n4.pth'))
+        model.load_state_dict(torch.load('models/{}.pth'.format(modelName)))
         model.eval()
         print('download finished')
     return model
@@ -327,21 +330,23 @@ from utils import render_1_image
 from numpy.random import uniform
 obj_name = 'Large_dice'
 
-nb_im = 6
-for i in range(nb_im):
+nb_im = 15
+loop = tqdm.tqdm(range(0,nb_im))
+for i in loop:
 
-    randIm = int(round(uniform(0, test_length), 0))
+    randIm = int(round(uniform(0,test_length), 0))
     print('computed parameter_{}: '.format(i+1))
-    print(predicted_params[randIm ])
+    print(predicted_params[randIm])
     print('ground truth parameter_{}: '.format(i+1))
-    print(params[randIm ])
+    print(params[randIm])
+
     im, sil = render_1_image(obj_name, predicted_params[randIm])  # create the dataset
 
     plt.subplot(2, nb_im, i+1)
-    plt.imshow(test_im[i])
+    plt.imshow(test_im[randIm])
 
     plt.subplot(2, nb_im, i+1+nb_im)
     plt.imshow(im)
 
-
 plt.show()
+print('finish')

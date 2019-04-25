@@ -50,6 +50,22 @@ def AxisBlend2Rend(tx=0, ty=0, tz=0, alpha=0, beta=0, gamma=0):
 # random set translation and rotation parameter
 # ---------------------------------------------------------------------------------
 
+def get_Man_param_R_t():  # translation and rotation manual
+
+    constraint_x = 2.5
+    constraint_y = 2.5
+
+    constraint_angle = m.pi
+
+    x = 0
+    y = 0
+    z = -6
+
+    alpha = np.radians(0)
+    beta = np.radians(0)
+    gamma = np.radians(0)
+
+    return alpha, beta, gamma, x, y, z
 
 def get_param_R_t():  # translation and rotation
 
@@ -90,16 +106,20 @@ def get_param_t():  # only translation
 
 def get_param_R():  # only rotation
 
-    constraint_angle = m.pi
+    constraint_angle = m.pi/2
 
     # draw random value of R and t in a specific span
     x = 0
     y = 0
-    z = round( uniform(-15, -5), 1) # need to see the entire cube (if set to 0 we are inside it)
+    z = -7 # need to see the entire cube (if set to 0 we are inside it)
+
+    # alpha = round(uniform(0, constraint_angle), 1)
+    # beta = round(uniform(0, constraint_angle), 1)
+    # gamma = round(uniform(0, constraint_angle), 1)
 
     alpha = round(uniform(-constraint_angle, constraint_angle), 1)
-    beta = round(uniform(-constraint_angle, constraint_angle), 1)
-    gamma = round(uniform(-constraint_angle, constraint_angle), 1)
+    beta = 0
+    gamma = 0
 
     return alpha, beta, gamma, x, y, z
 
@@ -158,7 +178,8 @@ def creation_database(Obj_Name, file_name_extension, nb_im=10000):
     cubes_database = 0
     sils_database = 0
     params_database = 0
-    for i in range(0, nb_im):
+    loop = tqdm.tqdm(range(0,nb_im))
+    for i in loop:
         # loop.set_description('render png {}'.format(i))
         # create path
         current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -185,7 +206,7 @@ def creation_database(Obj_Name, file_name_extension, nb_im=10000):
 
 # ------define extrinsic parameter--------------------------------------------------------------------
 
-        alpha, beta, gamma, x, y, z = get_param_R()  # define transformation parameter, alpha beta gamma in radian
+        alpha, beta, gamma, x, y, z = get_Man_param_R_t()  # define transformation parameter, alpha beta gamma in radian
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -200,7 +221,12 @@ def creation_database(Obj_Name, file_name_extension, nb_im=10000):
         # create the renderer
         renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
                                K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255,255,255],
-                               far=1000, orig_size=512, light_direction=[0,-1,0])
+                               far=1000, orig_size=512,
+                               light_intensity_ambient=0,  light_intensity_directional=0.5, light_direction=[0,-0.5,0],
+                               light_color_ambient=[1,1,1], light_color_directional=[1,1,1]) #[1,1,1]
+
+        #the light directional is responsible to the holes in the dice
+        # [0,-1,0] means light point verticaly down
 
         # save the image in pgn form
         #writer = imageio.get_writer(args.filename_output, mode='i')
@@ -300,7 +326,8 @@ def render_1_image(Obj_Name, params):
     # create the renderer
     renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
                            K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=0.1, background_color=[255,255,255],
-                           far=1000, orig_size=512, light_direction=[0,-1,0])
+                           far=1000, orig_size=512, light_direction=[0,-1,0],
+                           light_intensity_ambient=0.4,  light_intensity_directional=0.5)
 
 
     # render an image of the 3d object
@@ -312,7 +339,7 @@ def render_1_image(Obj_Name, params):
 
     # create the segmentation of the image
 
-    images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes')  # [batch_size, RGB, image_size, image_size]
+    images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') # [batch_size, RGB, image_size, image_size]
     final_sil = images_1.detach().cpu().numpy().transpose((1, 2, 0))
 
     return final_im, final_sil

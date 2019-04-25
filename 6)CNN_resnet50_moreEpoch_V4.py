@@ -13,21 +13,21 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-cubeSetName = 'cubesR_10000set'
-silSetName = 'silsR_10000set'
-paramSetName = 'paramsR_10000set'
+cubeSetName = 'cubesAlphaR_1000set'
+silSetName = 'silsAlphaR_1000set'
+paramSetName = 'paramsAlphaR_1000set'
 
 # cubeSetName = 'cubesRt'
 # silSetName = 'silsRt'
 # paramSetName = 'paramsRt'
 
-date4File = '042319' #mmddyy
+date4File = '042519' #mmddyy
 
-fileExtension = 'Rt_loss2'
+fileExtension = 'AlphaRonly2'
 
 batch_size = 6
 
-n_epochs = 20
+n_epochs = 40
 
 target_size = (512, 512)
 
@@ -62,20 +62,20 @@ test_param = params[:test_length]
 
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor, Compose
+from torchvision.transforms import ToTensor, Compose, Normalize, Lambda
 
 class CubeDataset(Dataset):
     # write your code
     def __init__(self, images, silhouettes, parameters, transform=None):
         self.images = images.astype(np.uint8)  # our image
         self.silhouettes = silhouettes.astype(np.uint8)  # our related parameter
-        self.parameters = parameters.astype(np.float16)
+        self.parameters = parameters.astype(np.float32)
         self.transform = transform
 
     def __getitem__(self, index):
         # Anything could go here, e.g. image loading from file or a different structure
         # must return image and center
-        sel_images = self.images[index]
+        sel_images = self.images[index].astype(np.float32) / 255
         sel_sils = self.silhouettes[index]
         sel_params = self.parameters[index]
 
@@ -83,15 +83,16 @@ class CubeDataset(Dataset):
             sel_images = self.transform(sel_images)
             sel_sils = self.transform(sel_sils)
 
-        return sel_images, sel_sils, torch.FloatTensor(sel_params)  # return all parameter in tensor form
+        return sel_images, sel_images, torch.FloatTensor(sel_params)  # return all parameter in tensor form
 
     def __len__(self):
         return len(self.images)  # return the length of the dataset
 #  ------------------------------------------------------------------
 
 
-
-transforms = Compose([ToTensor()])
+normalize = Normalize(mean=[0.5], std=[0.5])
+gray_to_rgb = Lambda(lambda x: x.repeat(3, 1, 1) )
+transforms = Compose([ ToTensor(),  normalize])
 train_dataset = CubeDataset(train_im, train_sil, train_param, transforms)
 val_dataset = CubeDataset(val_im, val_sil, val_param, transforms)
 test_dataset = CubeDataset(test_im, test_sil, test_param, transforms)
@@ -334,13 +335,14 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
     train_epoch_losses = []
     val_losses = []
     val_epoch_losses = []
+    firstrun = True
     all_translation_loss_per_epoch = []
     all_rotation_loss_per_epoch = []
 
     f = open("result/{}_{}_{}_batchs_{}_epochs_{}.txt".format(date4File, cubeSetName, str(batch_size), str(n_epochs), fileExtension), "w+")
     g = open("result/{}_{}_{}_batchs_{}_epochs_{}_Rtvalues.txt".format(date4File, cubeSetName, str(batch_size), str(n_epochs),
                                                               fileExtension), "w+")
-    g.write('alpha alphaGT beta  betaGT gamma gammaGT x xGT yGT zGT \r\n')
+    g.write('alpha alphaGT beta betaGT gamma gammaGT x xGT y yGT z zGT \r\n')
     for epoch in range(n_epochs):
 
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.004)
@@ -357,6 +359,7 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
         losses = []  # running loss
         loop = tqdm.tqdm(train_dataloader)
         count = 0
+        firstrun = True
 
         for image, silhouette, parameter in loop:
             image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
@@ -366,6 +369,11 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
 
             # zero the parameter gradients
             optimizer.zero_grad()
+
+            # # initialisation rotation of the cube
+            # if firstrun:
+            #     predicted_params[:,0:2] = 1
+            #     firstrun = False
 
 
             # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
@@ -385,7 +393,7 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
             predict_params.extend(predicted_params.detach().cpu().numpy())  # append computed parameters
             losses.append(loss.item())  # batch length is append every time
 
-            # store value GT(ground truth) and predicted param
+            # store value GT(ground truth) and predicted param in a text file
             for i in range(0, batch_size):
                 for j in range(0, 6):
                     estim = predicted_params[i][j]
@@ -430,7 +438,7 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
             val_losses.append(av_loss)  # global losses array on the way
 
             print('run: {}/{} MSE val loss: {:.4f}\r\n'.format(count2, len(loop), av_loss))
-            f.write('run: {}/{}  MSE val loss: {:.4f}\r\n'.format(count2, len(loop), av_loss))
+            # f.write('run: {}/{}  MSE val loss: {:.4f}\r\n'.format(count2, len(loop), av_loss))
 
             count2 = count2 + 1
         val_epoch_losses.append(np.mean(np.array(losses))) #global losses array on the way
