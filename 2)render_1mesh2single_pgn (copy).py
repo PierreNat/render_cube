@@ -73,8 +73,8 @@ def main():
     
     Rz = np.array([[m.cos(gamma),-m.sin(gamma),0],
                   [m.sin(gamma),m.cos(gamma),0],
-                  [0,0,1]]) 
-  
+                  [0,0,1]])
+
 #   creaete the rotation camera matrix 
     
     R = np.matmul(Rx,Ry)
