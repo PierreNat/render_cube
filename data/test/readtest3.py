@@ -11,13 +11,13 @@ import math as m
 import torch
 fig=plt.figure()
 
-cube = np.load('cubesrgb_test.npy')
-param = np.load('paramsrgb_test_param.npy')
+cubes = np.load('cubes_rgb_test2.npy')
+params = np.load('params_rgb_test_param2.npy')
 
 for i in range(0,10):
-    img = cube[i]
-
-
+    img = cubes[i]
+    param = params[i]
+    print(param)
     plt.imshow(img)
     plt.show()
 

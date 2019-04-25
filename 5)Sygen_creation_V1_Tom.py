@@ -128,12 +128,12 @@ def main():
         R = np.array([np.radians(alpha), np.radians(beta), np.radians(gamma)])  # angle in degree
         t = np.array([0, 0, 5])  # translation in meter
 
-        Rt = np.concatenate((R, t), axis=None)  # create one array of parameter in radian, this arraz will be saved in .npy file
+        Rt = np.concatenate((R, t), axis=None).astype(np.float16)  # create one array of parameter in radian, this arraz will be saved in .npy file
 
         cam = camera_setttings(R=R, t=t, vert=nb_vertices) # degree angle will be converted  and stored in radian
 
         renderer = nr.Renderer(image_size=512, camera_mode='projection',dist_coeffs=None,
-                               K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=1, background_color=[255,255,255],
+                               K=cam.K_vertices, R=cam.R_vertices, t=cam.t_vertices, near=1, background_color=[1,1,1], #changed from 0-255 to 0-1
                                far=1000, orig_size=512,
                                light_intensity_ambient=1.0,  light_intensity_directional=0, light_direction=[0,1,0],
                                light_color_ambient=[1,1,1], light_color_directional=[1,1,1]) #[1,1,1]
@@ -141,18 +141,23 @@ def main():
 
         images_1 = renderer(vertices_1, faces_1, textures_1)  # [batch_size, RGB, image_size, image_size]
         image = images_1[0].detach().cpu().numpy()[0].transpose((1, 2, 0)) #float32 from 0 to 255
-        if((i % 100) == 0):
+        image = (image*255).astype(np.uint8) #cast from float32 255.0 to 255 uint8, background is filled now with  value 1-0 instead of 0-255
+        if((i % 1000) == 0):
             plt.imshow(image)
+
+            # print(image.shape)
+            # print(np.max(image[:, :, 0]))
+            # print(np.min(image[:, :, 0]))
             plt.show()
             plt.close()
             # save the image in array form
         cubes_database, first_im = appendElement(all_elem=cubes_database, elem=image, first=first_im)
 
-        params_database, first_param = appendElement(all_elem=params_database, elem=Rt.astype(np.float16), first=first_param)
+        params_database, first_param = appendElement(all_elem=params_database, elem=Rt, first=first_param)
 
         # save database
-    np.save('data/test/cubes{}.npy'.format('rgb_test'), cubes_database)
-    np.save('data/test/params{}.npy'.format('rgb_test_param'), params_database)
+    np.save('data/test/cubes_{}.npy'.format('rgb_test2'), cubes_database)
+    np.save('data/test/params_{}.npy'.format('rgb_test_param2'), params_database)
     print('image saved')
 
         # plt.imshow(image)

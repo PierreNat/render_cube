@@ -13,15 +13,15 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-cubeSetName = 'cubesrgb_test'
+cubeSetName = 'cubes_rgb_test2'
 silSetName = 'silsAlphaR_1000set'
-paramSetName = 'paramsrgb_test_param'
+paramSetName = 'params_rgb_test_param2.npy'
 
 # cubeSetName = 'cubesRt'
 # silSetName = 'silsRt'
 # paramSetName = 'paramsRt'
 
-date4File = '042519' #mmddyy
+date4File = '042619' #mmddyy
 
 fileExtension = 'rgb_test'
 
