@@ -7,6 +7,7 @@ plot render after each epoch
 """
 import torch
 import numpy as np
+import matplotlib.pyplot as plt
 
 # device = torch.device('cpu')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -15,7 +16,7 @@ print(device)
 
 cubeSetName = 'cubes_rgb_test2'
 silSetName = 'silsAlphaR_1000set'
-paramSetName = 'params_rgb_test_param2.npy'
+paramSetName = 'params_rgb_test_param2'
 
 # cubeSetName = 'cubesRt'
 # silSetName = 'silsRt'
@@ -90,9 +91,10 @@ class CubeDataset(Dataset):
 #  ------------------------------------------------------------------
 
 
+
 normalize = Normalize(mean=[0.5], std=[0.5])
-gray_to_rgb = Lambda(lambda x: x.repeat(3, 1, 1) )
-transforms = Compose([ ToTensor(),  normalize])
+gray_to_rgb = Lambda(lambda x: x.repeat(3, 1, 1))
+transforms = Compose([ToTensor(),  normalize])
 train_dataset = CubeDataset(train_im, train_sil, train_param, transforms)
 val_dataset = CubeDataset(val_im, val_sil, val_param, transforms)
 test_dataset = CubeDataset(test_im, test_sil, test_param, transforms)
@@ -108,6 +110,22 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
 test_dataloader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=2)
 
+
+
+for image, sil, param in train_dataloader:
+
+    # print(image[2])
+    print(image.size(), param.size()) #torch.Size([batch, 3, 512, 512]) torch.Size([batch, 6])
+    im =2
+    print(param[im])  # parameter in form tensor([2.5508, 0.0000, 0.0000, 0.0000, 0.0000, 5.0000])
+
+    image2show = image[im]  # indexing random  one image
+    print(image2show.size()) #torch.Size([3, 512, 512])
+    plt.imshow((image2show * 0.5 + 0.5).numpy().transpose(1, 2, 0))
+    plt.show()
+    break  # break here just to show 1 batch of data
+
+#  ------------------------------------------------------------------
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -293,7 +311,7 @@ class ResNet(nn.Module):
         return x
 
 
-def resnet50(pretrained=False, **kwargs):
+def resnet50(pretrained=True, **kwargs):
     """Constructs a ResNet-50 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
@@ -302,14 +320,14 @@ def resnet50(pretrained=False, **kwargs):
     if pretrained:
         print('using pre-trained model')
 
-        model.load_state_dict(torch.load('./model_train_nepoch.pth'))
-        model.eval()
-        # pretrained_state = model_zoo.load_url(model_urls['resnet50'])
-        # model_state = model.state_dict()
-        # pretrained_state = {k: v for k, v in pretrained_state.items() if
-        #                     k in model_state and v.size() == model_state[k].size()}
-        # model_state.update(pretrained_state)
-        # model.load_state_dict(model_state)
+        # model.load_state_dict(torch.load('./model_train_nepoch.pth'))
+        # model.eval()
+        pretrained_state = model_zoo.load_url(model_urls['resnet50'])
+        model_state = model.state_dict()
+        pretrained_state = {k: v for k, v in pretrained_state.items() if
+                            k in model_state and v.size() == model_state[k].size()}
+        model_state.update(pretrained_state)
+        model.load_state_dict(model_state)
 
         print('download finished')
     return model

@@ -16,12 +16,12 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-modelName = '042519_TempModel_train_cubesrgb_test_6_batchs_epochs_n2_rgb_test'
+modelName = '042619_TempModel_train_cubes_rgb_test2_6_batchs_epochs_n19_rgb_test'
 
 # cubesAlphaR_1000set
-cubeSetName = 'cubesrgb_test'
+cubeSetName = 'cubes_rgb_test2'
 silSetName = 'silsAlphaR_1000set'
-paramSetName = 'paramsrgb_test_param'
+paramSetName = 'params_rgb_test_param2'
 
 cubes_file = './data/test/{}.npy'.format(cubeSetName)
 silhouettes_file = './data/test/{}.npy'.format(silSetName)
@@ -92,17 +92,14 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
 for image, sil, param in test_dataloader:
 
     # print(image[2])
-    print(image.size())
-    image2show = image[2]  # indexing random  one image
-    print(image2show)
+    print(image.size(), param.size()) #torch.Size([batch, 3, 512, 512]) torch.Size([batch, 6])
+    im =2
+    print(param[im])  # parameter in form tensor([2.5508, 0.0000, 0.0000, 0.0000, 0.0000, 5.0000])
 
-    # # tensor to numpy:
-    image2shownp = (image2show).numpy().reshape((512, 512, 3))  # reshape the torch format to numpy
-    print(image2shownp.shape)
-    #
-    plt.imshow(image2shownp)
+    image2show = image[im]  # indexing random  one image
+    print(image2show.size()) #torch.Size([3, 512, 512])
+    plt.imshow((image2show * 0.5 + 0.5).numpy().transpose(1, 2, 0))
     plt.show()
-
     break  # break here just to show 1 batch of data
 
 #  ------------------------------------------------------------------
