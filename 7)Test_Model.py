@@ -16,11 +16,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-modelName = '042619_TempModel_train_cubes_10000rgbAlphaBeta_6_batchs_epochs_n5_2000set2'
+modelName = '042619_FinalModel_train_cubes_10000rgbRt_6_batchs_40_epochs_2000setRt'
 # modelName = '042619_TempModel_train_cubes_10000rgbAlphaBeta_6_batchs_epochs_n18_rgb_testAlphaBeta'
 
 
-file_name_extension = '10000rgbAlphaBeta'
+file_name_extension = '10000rgbRt'
 
 cubes_file = './data/test/cubes_{}.npy'.format(file_name_extension)
 silhouettes_file = './data/test/sils_{}.npy'.format(file_name_extension)

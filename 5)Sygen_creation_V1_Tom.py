@@ -108,7 +108,6 @@ def main():
     faces_1 = faces_1[None, :, :]  #add dimension
     textures_1 = textures_1[None, :, :]  #add dimension
     nb_vertices = vertices_1.shape[0]
-    texture_size = 1 # WHAT IS THIS?
 
     print(vertices_1.shape)
     print(faces_1.shape)
@@ -116,18 +115,22 @@ def main():
     # textures_1 = torch.ones(1, faces_1.shape[1], texture_size, texture_size, texture_size, 3,
                             # dtype=torch.float32).cuda()
 
-    nb_im = 2000
+    nb_im = 5000
 
     loop = tqdm.tqdm(range(0, nb_im))
     for i in loop:
         # R = np.array([np.radians(round(uniform(0, 90), 0)), np.radians(0), np.radians(0)])  # angle in degree
         # t = np.array([0, 0, 5])  # translation in meter
-        alpha = uniform(0, 179)
-        print(alpha)
-        beta = uniform(0, 179)
-        gamma = 0
+        alpha = uniform(0, 180)
+        # print(alpha)
+        beta = uniform(0, 180)
+        gamma = uniform(0, 180)
+        x = uniform(-2, 2)
+        y = uniform(-2, 2)
+        z = uniform(7, 10)
         R = np.array([np.radians(alpha), np.radians(beta), np.radians(gamma)])  # angle in degree
-        t = np.array([0, 0, 5])  # translation in meter
+
+        t = np.array([x, y, z])  # translation in meter
 
         Rt = np.concatenate((R, t), axis=None).astype(np.float16)  # create one array of parameter in radian, this arraz will be saved in .npy file
 
@@ -152,7 +155,7 @@ def main():
         sil = np.squeeze((sil * 255)).astype(np.uint8)
 
 
-        if((i % 200) == 0):
+        if((i % 1000) == 0):
             fig = plt.figure()
             fig.add_subplot(1, 2, 1)
             plt.imshow(image)
@@ -170,7 +173,7 @@ def main():
         params_database, first_param = appendElement(all_elem=params_database, elem=Rt, first=first_param)
 
         # save database
-    file_name_extension = '10000rgbAlphaBeta'
+    file_name_extension = '5000rgbRt'
     np.save('data/test/cubes_{}.npy'.format(file_name_extension), cubes_database)
     np.save('data/test/sils_{}.npy'.format(file_name_extension), sils_database)
     np.save('data/test/params_{}.npy'.format(file_name_extension), params_database)

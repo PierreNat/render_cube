@@ -14,14 +14,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-cubeSetName = 'cubes_10000rgbAlphaBeta'
-silSetName = 'sils_10000rgbAlphaBeta'
-paramSetName = 'params_10000rgbAlphaBeta'
+cubeSetName = 'cubes_2000rgbRt_nolimit'
+silSetName = 'sils_2000rgbRt_nolimit'
+paramSetName = 'params_2000rgbRt_nolimit'
 
 
 date4File = '042619' #mmddyy
 
-fileExtension = '2000set2'
+fileExtension = '2000setRt_nolimit'
 
 batch_size = 6
 
@@ -384,9 +384,6 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
             # zero the parameter gradients
             optimizer.zero_grad()
 
-
-            # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
-
             loss = loss_function(predicted_params, parameter) #MSE  value ?
             alpha_loss = loss_function(predicted_params[:, 0], parameter[:, 0])
             beta_loss = loss_function(predicted_params[:, 1], parameter[:, 1])
@@ -407,13 +404,14 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
                 for j in range(0, 6):
                     estim = predicted_params[i][j]
                     gt = parameters[i][j]
-                    g.write('{:.4f} {:.4f} '.format(estim, gt))
+                    g.write('{:.4f} '.format(np.abs(estim-gt)))
                 g.write('\r\n')
 
             train_loss = np.mean(np.array(losses))
 
             train_losses.append(train_loss)  # global losses array on the way
-            print('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f}  translation loss: {:.4f} {:.4f} {:.4f}  '.format(count, len(loop), train_loss,alpha_loss, beta_loss, gamma_loss, x_loss,y_loss, z_loss))
+            print('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f} alpha error: {:.4f} , beta error: {:.4f}  gamma error: {:.4f} translation loss: {:.4f} {:.4f} {:.4f} '
+                  .format(count, len(loop), train_loss, alpha_loss, beta_loss, gamma_loss, np.degrees(alpha_loss), np.degrees(beta_loss), np.degrees(gamma_loss), x_loss,y_loss, z_loss))
             f.write('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f}  translation loss: {:.4f} {:.4f} {:.4f} \r\n'.format(count, len(loop), train_loss,alpha_loss, beta_loss, gamma_loss, x_loss,y_loss, z_loss))
 
             count = count + 1
@@ -425,7 +423,7 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
         model.eval()
         f.write('Val, run epoch: {}/{} \r\n'.format(epoch, n_epochs))
         loop = tqdm.tqdm(val_dataloader)
-        epoch_score = 0
+        val_epoch_score = 0 #reset
         for image, silhouette, parameter in loop:
 
             image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
@@ -444,20 +442,21 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
 
 
             av_loss = np.mean(np.array(losses))
-            epoch_score += av_loss #score of this epoch
-            val_losses.append(av_loss)  # global losses array on the way
+            val_epoch_score += av_loss #score of this epoch
+            val_losses.append(av_loss)  # append current loss score to global losses array
 
             print('run: {}/{} MSE val loss: {:.4f}\r\n'.format(count2, len(loop), av_loss))
             count2 = count2 + 1
-            # f.write('run: {}/{}  MSE val loss: {:.4f}\r\n'.format(count2, len(loop), av_loss))
 
         val_epoch_losses.append(np.mean(np.array(losses)))  # global losses array on the way
+        print('Mean val loss for epoch {} is {}'.format(epoch, val_epoch_score))
 
-        if epoch_score < best_score:   #is the validation batch loss better than previous one?
+        if val_epoch_score < best_score:   #is the validation batch loss better than previous one?
             torch.save(model.state_dict(), 'models/{}_TempModel_Best_train_{}_{}_batchs_epochs_n{}_{}.pth'.format(date4File, cubeSetName, str(batch_size), str(epoch), fileExtension))
             print('parameters saved for epoch {}'.format(epoch))
+
             noDecreaseCount = 0
-            best_score = epoch_score
+            best_score = val_epoch_score
         else:                           #the validation batch loss is not better, increase counter
             noDecreaseCount += 1
 
