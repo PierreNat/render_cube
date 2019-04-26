@@ -16,16 +16,15 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-modelName = '042619_TempModel_train_cubes_rgb_test2_6_batchs_epochs_n19_rgb_test'
+modelName = '042619_TempModel_train_cubes_10000rgbAlphaBeta_6_batchs_epochs_n5_2000set2'
+# modelName = '042619_TempModel_train_cubes_10000rgbAlphaBeta_6_batchs_epochs_n18_rgb_testAlphaBeta'
 
-# cubesAlphaR_1000set
-cubeSetName = 'cubes_rgb_test2'
-silSetName = 'silsAlphaR_1000set'
-paramSetName = 'params_rgb_test_param2'
 
-cubes_file = './data/test/{}.npy'.format(cubeSetName)
-silhouettes_file = './data/test/{}.npy'.format(silSetName)
-parameters_file = './data/test/{}.npy'.format(paramSetName)
+file_name_extension = '10000rgbAlphaBeta'
+
+cubes_file = './data/test/cubes_{}.npy'.format(file_name_extension)
+silhouettes_file = './data/test/sils_{}.npy'.format(file_name_extension)
+parameters_file = './data/test/params_{}.npy'.format(file_name_extension)
 
 target_size = (512, 512)
 
@@ -354,7 +353,7 @@ from utils import tom_render_1_image
 
 obj_name = 'rubik_color'
 
-nb_im = 6
+nb_im = 15
 loop = tqdm.tqdm(range(0,nb_im))
 for i in loop:
 

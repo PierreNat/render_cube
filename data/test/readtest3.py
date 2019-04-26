@@ -9,15 +9,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math as m
 import torch
-fig=plt.figure()
 
-cubes = np.load('cubes_rgb_test2.npy')
-params = np.load('params_rgb_test_param2.npy')
+file_name_extension = '10000rgbAlpha'
+
+cubes = np.load('cubes_{}.npy'.format(file_name_extension))
+sils = np.load('sils_{}.npy'.format(file_name_extension))
+params = np.load('params_{}.npy'.format(file_name_extension))
 
 for i in range(0,10):
+    fig = plt.figure()
     img = cubes[i]
+    sil = sils[i]
     param = params[i]
     print(param)
+
+    fig.add_subplot(1, 2, 1)
     plt.imshow(img)
+
+    fig.add_subplot(1, 2, 2)
+    plt.imshow(sil, cmap='gray')
     plt.show()
+    plt.close(fig)
 

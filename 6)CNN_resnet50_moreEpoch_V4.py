@@ -14,21 +14,18 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-cubeSetName = 'cubes_rgb_test2'
-silSetName = 'silsAlphaR_1000set'
-paramSetName = 'params_rgb_test_param2'
+cubeSetName = 'cubes_10000rgbAlphaBeta'
+silSetName = 'sils_10000rgbAlphaBeta'
+paramSetName = 'params_10000rgbAlphaBeta'
 
-# cubeSetName = 'cubesRt'
-# silSetName = 'silsRt'
-# paramSetName = 'paramsRt'
 
 date4File = '042619' #mmddyy
 
-fileExtension = 'rgb_test'
+fileExtension = '2000set2'
 
 batch_size = 6
 
-n_epochs = 20
+n_epochs = 40
 
 target_size = (512, 512)
 
@@ -348,14 +345,15 @@ import tqdm
 
 def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
     # monitor loss functions as the training progresses
-    learning_rate = 0.001
+    learning_rate = 0.01
     train_losses = []
     train_epoch_losses = []
     val_losses = []
+
     val_epoch_losses = []
-    firstrun = True
-    all_translation_loss_per_epoch = []
-    all_rotation_loss_per_epoch = []
+
+    best_score  = 1000
+    noDecreaseCount = 0
 
     f = open("result/{}_{}_{}_batchs_{}_epochs_{}.txt".format(date4File, cubeSetName, str(batch_size), str(n_epochs), fileExtension), "w+")
     g = open("result/{}_{}_{}_batchs_{}_epochs_{}_Rtvalues.txt".format(date4File, cubeSetName, str(batch_size), str(n_epochs),
@@ -363,7 +361,7 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
     g.write('alpha alphaGT beta betaGT gamma gammaGT x xGT y yGT z zGT \r\n')
     for epoch in range(n_epochs):
 
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.004)
+        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
         f.write('Train, run epoch: {}/{} with Lr {} \r\n'.format(epoch, n_epochs, str(learning_rate)))
         g.write('Train, run epoch: {}/{} with Lr {} \r\n'.format(epoch, n_epochs, str(learning_rate)))
         print('run epoch: {} with Lr {}'.format(epoch, learning_rate))
@@ -373,11 +371,9 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
         parameters = []  # ground truth labels
         predict_params = []  # predicted labels
 
-
         losses = []  # running loss
         loop = tqdm.tqdm(train_dataloader)
         count = 0
-        firstrun = True
 
         for image, silhouette, parameter in loop:
             image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
@@ -387,11 +383,6 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
 
             # zero the parameter gradients
             optimizer.zero_grad()
-
-            # # initialisation rotation of the cube
-            # if firstrun:
-            #     predicted_params[:,0:2] = 1
-            #     firstrun = False
 
 
             # images_1 = renderer(vertices_1, faces_1, textures_1, mode='silhouettes') #create the silhouette with the renderer
@@ -419,15 +410,14 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
                     g.write('{:.4f} {:.4f} '.format(estim, gt))
                 g.write('\r\n')
 
-            av_loss = np.mean(np.array(losses))
-            train_losses.append(av_loss)  # global losses array on the way
-            print('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f}  translation loss: {:.4f} {:.4f} {:.4f}  '.format(count, len(loop), av_loss ,alpha_loss, beta_loss, gamma_loss, x_loss,y_loss, z_loss))
-            f.write('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f}  translation loss: {:.4f} {:.4f} {:.4f} \r\n'.format(count, len(loop), av_loss ,alpha_loss, beta_loss, gamma_loss, x_loss,y_loss, z_loss))
+            train_loss = np.mean(np.array(losses))
+
+            train_losses.append(train_loss)  # global losses array on the way
+            print('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f}  translation loss: {:.4f} {:.4f} {:.4f}  '.format(count, len(loop), train_loss,alpha_loss, beta_loss, gamma_loss, x_loss,y_loss, z_loss))
+            f.write('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f}  translation loss: {:.4f} {:.4f} {:.4f} \r\n'.format(count, len(loop), train_loss,alpha_loss, beta_loss, gamma_loss, x_loss,y_loss, z_loss))
 
             count = count + 1
 
-            # if loss < threshold:  #early stop to avoid over fitting
-            #     break
 
         train_epoch_losses.append(np.mean(np.array(losses))) # global losses array on the way
 
@@ -435,6 +425,7 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
         model.eval()
         f.write('Val, run epoch: {}/{} \r\n'.format(epoch, n_epochs))
         loop = tqdm.tqdm(val_dataloader)
+        epoch_score = 0
         for image, silhouette, parameter in loop:
 
             image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
@@ -453,30 +444,44 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
 
 
             av_loss = np.mean(np.array(losses))
+            epoch_score += av_loss #score of this epoch
             val_losses.append(av_loss)  # global losses array on the way
 
             print('run: {}/{} MSE val loss: {:.4f}\r\n'.format(count2, len(loop), av_loss))
+            count2 = count2 + 1
             # f.write('run: {}/{}  MSE val loss: {:.4f}\r\n'.format(count2, len(loop), av_loss))
 
-            count2 = count2 + 1
-        val_epoch_losses.append(np.mean(np.array(losses))) #global losses array on the way
-        torch.save(model.state_dict(),
-                   'models/{}_TempModel_train_{}_{}_batchs_epochs_n{}_{}.pth'.format(date4File, cubeSetName, str(batch_size),
-                                                                                str(epoch), fileExtension))
-        print('parameters saved for epoch {}'.format(epoch))
+        val_epoch_losses.append(np.mean(np.array(losses)))  # global losses array on the way
+
+        if epoch_score < best_score:   #is the validation batch loss better than previous one?
+            torch.save(model.state_dict(), 'models/{}_TempModel_Best_train_{}_{}_batchs_epochs_n{}_{}.pth'.format(date4File, cubeSetName, str(batch_size), str(epoch), fileExtension))
+            print('parameters saved for epoch {}'.format(epoch))
+            noDecreaseCount = 0
+            best_score = epoch_score
+        else:                           #the validation batch loss is not better, increase counter
+            noDecreaseCount += 1
+
+        if noDecreaseCount > 5:   #if the validation loss does not deacrease after 5 epochs, lower the learning rate
+            learning_rate /= 10
+            noDecreaseCount = 0
+
+
+
+        # torch.save(model.state_dict(),
+        #            'models/{}_TempModel_train_{}_{}_batchs_epochs_n{}_{}.pth'.format(date4File, cubeSetName, str(batch_size),
+        #                                                                         str(epoch), fileExtension))
+
         # learning_rate = learning_rate/10
 
     f.close()
     g.close()
 
-    return train_epoch_losses, val_epoch_losses, count, count2
+    return train_epoch_losses, val_epoch_losses
 
 
 #  ------------------------------------------------------------------
 
-
-
-train_losses, val_losses, count, count2 = train(model, train_dataloader, val_dataloader, n_epochs, criterion)
+train_losses, val_losses = train(model, train_dataloader, val_dataloader, n_epochs, criterion)
 
 #  ------------------------------------------------------------------
 
