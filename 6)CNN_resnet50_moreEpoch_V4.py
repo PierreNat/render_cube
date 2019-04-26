@@ -14,14 +14,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-cubeSetName = 'cubes_2000rgbRt_nolimit'
-silSetName = 'sils_2000rgbRt_nolimit'
-paramSetName = 'params_2000rgbRt_nolimit'
+cubeSetName = 'cubes_5000rgbRt'
+silSetName = 'sils_5000rgbRt'
+paramSetName = 'params_5000rgbRt'
 
 
 date4File = '042619' #mmddyy
 
-fileExtension = '2000setRt_nolimit'
+fileExtension = 'last'
 
 batch_size = 6
 
@@ -400,19 +400,23 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
             losses.append(loss.item())  # batch length is append every time
 
             # store value GT(ground truth) and predicted param in a text file
-            for i in range(0, batch_size):
-                for j in range(0, 6):
-                    estim = predicted_params[i][j]
-                    gt = parameters[i][j]
-                    g.write('{:.4f} '.format(np.abs(estim-gt)))
-                g.write('\r\n')
+            # for i in range(0, batch_size):
+            #     for j in range(0, 6):
+            #         estim = predicted_params[i][j].detach().cpu().numpy()
+            #         gt = parameters[i][j].detach().numpy()
+            #         if j < 3:
+            #             g.write('{:.4f}°'.format(np.degrees(np.abs(estim-gt))))
+            #         else:
+            #             g.write('{:.4f} '.format(np.abs(estim - gt)))
+            #     g.write('\r\n')
 
             train_loss = np.mean(np.array(losses))
 
             train_losses.append(train_loss)  # global losses array on the way
-            print('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f} alpha error: {:.4f} , beta error: {:.4f}  gamma error: {:.4f} translation loss: {:.4f} {:.4f} {:.4f} '
-                  .format(count, len(loop), train_loss, alpha_loss, beta_loss, gamma_loss, np.degrees(alpha_loss), np.degrees(beta_loss), np.degrees(gamma_loss), x_loss,y_loss, z_loss))
-            f.write('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f}  translation loss: {:.4f} {:.4f} {:.4f} \r\n'.format(count, len(loop), train_loss,alpha_loss, beta_loss, gamma_loss, x_loss,y_loss, z_loss))
+            print('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f} translation loss: {:.4f} {:.4f} {:.4f} '
+                    .format(count, len(loop), train_loss, alpha_loss, beta_loss, gamma_loss, x_loss,y_loss, z_loss))
+            f.write('run: {}/{} MSE train loss: {:.4f}, angle loss: {:.4f} {:.4f} {:.4f} translation loss: {:.4f} {:.4f} {:.4f}  \r\n'
+                    .format(count, len(loop), train_loss, alpha_loss, beta_loss, gamma_loss, x_loss, y_loss, z_loss))
 
             count = count + 1
 
@@ -423,7 +427,7 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
         model.eval()
         f.write('Val, run epoch: {}/{} \r\n'.format(epoch, n_epochs))
         loop = tqdm.tqdm(val_dataloader)
-        val_epoch_score = 0 #reset
+        val_epoch_score = 0 #reset score
         for image, silhouette, parameter in loop:
 
             image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
