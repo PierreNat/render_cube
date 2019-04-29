@@ -16,11 +16,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 print(device)
 
-modelName = '042619_FinalModel_train_cubes_10000rgbRt_6_batchs_40_epochs_2000setRt'
-# modelName = '042619_TempModel_train_cubes_10000rgbAlphaBeta_6_batchs_epochs_n18_rgb_testAlphaBeta'
+# modelName = '042819_TempModel_Best_train_cubes_5000rgbRt_6_batchs_epochs_n39_last' #4 Rt 5000 images
+modelName = '042619_TempModel_Best_train_cubes_10000rgbRt_6_batchs_epochs_n37_2000setRt' #4 Rt 2000 images
+# modelName = '042619_TempModel_Best_train_cubes_10000rgbAlphaBeta_6_batchs_epochs_n37_2000set2' #alpha beta rotation
 
 
-file_name_extension = '10000rgbRt'
+# file_name_extension = '5000rgbRt'
+file_name_extension = '2000rgbRt'
+# file_name_extension = '10000rgbAlphaBeta'
 
 cubes_file = './data/test/cubes_{}.npy'.format(file_name_extension)
 silhouettes_file = './data/test/sils_{}.npy'.format(file_name_extension)
@@ -302,9 +305,9 @@ def test(model, test_dataloader, loss_function):
     predicted_params = []
     losses = []  # running loss
     count2 = 0
-    f = open("result/Test_result.txt", "w+")
-    g = open("result/Test_result_save_param.txt", "w+")
-    g.write('alpha alphaGT beta  betaGT gamma gammaGT x xGT yGT zGT \r\n')
+    f = open("result/Test_result_{}.txt".format(file_name_extension), "w+")
+    g = open("result/Test_result_save_param_{}.txt".format(file_name_extension), "w+")
+    g.write('batch angle (error in degree) translation (error in m)  \r\n')
 
     loop = tqdm.tqdm(test_dataloader)
     for image, silhouette, parameter in loop:
@@ -312,7 +315,7 @@ def test(model, test_dataloader, loss_function):
         image = image.to(device)  # we have to send the inputs and targets at every step to the GPU too
         parameter = parameter.to(device)
         predicted_param = model(image)  # run prediction; output <- vector with probabilities of each class
-        # print(predicted_param)
+
 
         loss = loss_function(predicted_param, parameter) #MSE  value ?
 
@@ -321,12 +324,18 @@ def test(model, test_dataloader, loss_function):
         losses.append(loss.item())  # running loss
 
         #store value GT(ground truth) and predicted param
-        for i in range(0,batch_size):
+        for i in range(0, predicted_param.shape[0]):
             for j in range(0,6):
-                estim = predicted_params[i][j]
+                estim = predicted_param[i][j].detach().cpu().numpy()
+                g.write('{} '.format(count2))
                 gt = parameters[i][j]
-                g.write('{:.4f} {:.4f} '.format(estim, gt))
+                # g.write('{:.4f} {:.4f} '.format(estim, gt))
+                if j < 3:
+                    g.write('{:.4f}°'.format(np.rad2deg(estim-gt)))
+                else:
+                    g.write('{:.4f} '.format(estim - gt))
             g.write('\r\n')
+
 
         av_loss = np.mean(np.array(losses))
         test_losses.append(av_loss)  # global losses array on the way
@@ -353,7 +362,7 @@ from utils import tom_render_1_image
 
 obj_name = 'rubik_color'
 
-nb_im = 15
+nb_im = 6
 loop = tqdm.tqdm(range(0,nb_im))
 for i in loop:
 

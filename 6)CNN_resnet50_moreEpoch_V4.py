@@ -19,7 +19,7 @@ silSetName = 'sils_5000rgbRt'
 paramSetName = 'params_5000rgbRt'
 
 
-date4File = '042619' #mmddyy
+date4File = '042819' #mmddyy
 
 fileExtension = 'last'
 
@@ -358,7 +358,7 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
     f = open("result/{}_{}_{}_batchs_{}_epochs_{}.txt".format(date4File, cubeSetName, str(batch_size), str(n_epochs), fileExtension), "w+")
     g = open("result/{}_{}_{}_batchs_{}_epochs_{}_Rtvalues.txt".format(date4File, cubeSetName, str(batch_size), str(n_epochs),
                                                               fileExtension), "w+")
-    g.write('alpha alphaGT beta betaGT gamma gammaGT x xGT y yGT z zGT \r\n')
+    g.write('batch angle (error in degree) translation (error in m)  \r\n')
     for epoch in range(n_epochs):
 
         optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
@@ -399,16 +399,17 @@ def train(model, train_dataloader, val_dataloader, n_epochs, loss_function):
             predict_params.extend(predicted_params.detach().cpu().numpy())  # append computed parameters
             losses.append(loss.item())  # batch length is append every time
 
-            # store value GT(ground truth) and predicted param in a text file
-            # for i in range(0, batch_size):
-            #     for j in range(0, 6):
-            #         estim = predicted_params[i][j].detach().cpu().numpy()
-            #         gt = parameters[i][j].detach().numpy()
-            #         if j < 3:
-            #             g.write('{:.4f}°'.format(np.degrees(np.abs(estim-gt))))
-            #         else:
-            #             g.write('{:.4f} '.format(np.abs(estim - gt)))
-            #     g.write('\r\n')
+            # store value GT(ground truth) and predicted param
+            for i in range(0, predicted_params .shape[0]):
+                for j in range(0, 6):
+                    estim = predicted_params[i][j].detach().cpu().numpy()
+                    gt = parameters[i][j]
+                    g.write('{} '.format(count))
+                    if j < 3:
+                        g.write('{:.4f}°'.format(np.rad2deg(estim - gt)))
+                    else:
+                        g.write('{:.4f} '.format(estim - gt))
+                g.write('\r\n')
 
             train_loss = np.mean(np.array(losses))
 
