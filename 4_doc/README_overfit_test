@@ -1,0 +1,23 @@
+training of a model to see if we can overfit with a database between 1000  and 5000 images
+resnet recover R and t from the database and compute the loss with the ground truth R t
+currenty we don't work with  the binary image
+translation only: no problem, it converge and overfit
+
+rotation only: at first it failed  we first had issue with the data creation, Tom helps to have clean script for synthetic image generation and texture implementation, we moved from degree to radian and then from a dice to a RBG cube. We first only test with alpha axis rotation and it work. test with 2000 images
+	modelName = '042619_TempModel_Best_train_cubes_10000rgbAlphaBeta_6_batchs_epochs_n37_2000set2' #alpha beta rotation
+	file_name_extension = '10000rgbAlphaBeta'
+
+	cubes_file = './data/test/cubes_{}.npy'.format(file_name_extension)
+	silhouettes_file = './data/test/sils_{}.npy'.format(file_name_extension)
+	parameters_file = './data/test/params_{}.npy'.format(file_name_extension)
+
+rotation and translation: working with  set of 1000 and 5000 images, train of 40 epochs. Could be improved but we can see the overfitting
+	modelName = '042819_TempModel_Best_train_cubes_5000rgbRt_6_batchs_epochs_n39_last' #4 Rt
+	file_name_extension = '5000rgbRt'
+
+	cubes_file = './data/test/cubes_{}.npy'.format(file_name_extension)
+	silhouettes_file = './data/test/sils_{}.npy'.format(file_name_extension)
+	parameters_file = './data/test/params_{}.npy'.format(file_name_extension)
+
+	
+
